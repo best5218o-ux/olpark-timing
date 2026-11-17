@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>올팍 타이밍 — 공연 날 올림픽공원 도착·퇴장 시간 예보</title>
+<meta name="description" content="한국체육산업개발 공공데이터(공연정보·입출차·주차장 혼잡도·월별주차)와 지하철 승하차 기록으로 공연 날 올림픽공원의 시간대별 차량·지하철 몰림을 예보합니다.">
+<style>
+:root{--ink:#14213d;--sub:#5b6478;--line:#dfe3ea;--bg:#f6f7fb;--card:#fff;--pri:#1f4e9e;--pri2:#e4ecfa;--acc:#e4572e;--ok:#2a9d8f;--warn:#e9a23b;--bad:#d1495b;--base:#9aa3b5}
+*{box-sizing:border-box}body{margin:0;font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.55}
+header{background:linear-gradient(120deg,#14213d,#1f4e9e);color:#fff;padding:22px 18px 18px}
+header .wrap{max-width:1100px;margin:0 auto}
+h1{margin:0;font-size:26px;letter-spacing:-.5px}h1 small{font-size:14px;font-weight:500;opacity:.85;margin-left:8px}
+header p{margin:6px 0 0;opacity:.9;font-size:14.5px}
+.live{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:6px 12px;font-size:13px}
+.pill b{font-size:15px}
+nav{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line)}
+nav .wrap{max-width:1100px;margin:0 auto;display:flex;overflow-x:auto}
+nav button{border:0;background:none;padding:13px 16px;font-size:15px;font-weight:600;color:var(--sub);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.on{color:var(--pri);border-color:var(--pri)}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 10px;font-size:18px}.card h3{margin:14px 0 6px;font-size:15.5px}
+.muted{color:var(--sub);font-size:13px}
+.dates{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.date{flex:0 0 auto;border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:86px;background:#fff;cursor:pointer;text-align:center}
+.date .d{font-weight:700}.date .w{font-size:12px;color:var(--sub)}
+.date.on{border-color:var(--pri);background:var(--pri2)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfcff}
+.kpi .t{font-size:13px;color:var(--sub)}.kpi .v{font-size:22px;font-weight:800;margin:2px 0}.kpi .s{font-size:13px}
+.ev{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.tag{font-size:12px;border-radius:6px;padding:2px 7px;background:var(--pri2);color:var(--pri);font-weight:700;white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:#fff;padding:7px 12px;cursor:pointer;font-size:13.5px}.seg button.on{background:var(--pri);color:#fff}
+.chart{width:100%;overflow-x:auto}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--sub);margin-top:4px}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:5px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;vertical-align:top}th{background:#f1f4fa;font-weight:700}
+.badge{border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;color:#fff;white-space:nowrap}
+.b-hi{background:var(--bad)}.b-mid{background:var(--warn)}.b-lo{background:var(--ok)}
+.tip{background:#fff8e6;border:1px solid #f1d38a;border-radius:12px;padding:12px;font-size:14px}
+.tip b{color:#8a5a00}
+.hidden{display:none}
+footer{max-width:1100px;margin:0 auto;padding:10px 16px 40px;color:var(--sub);font-size:12.5px}
+a{color:var(--pri)}
+.ver{font-size:12px;opacity:.85}
+.warnbox{background:#fdecee;border:1px solid #f3b8c0;border-radius:10px;padding:8px 10px;font-size:13px;margin-top:8px}
+@media(max-width:600px){h1{font-size:22px}.kpi .v{font-size:19px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>올팍 타이밍 <small>공연 날 올림픽공원, 언제 도착하고 언제 나설까</small></h1>
+  <p>한국체육산업개발 공공데이터(공연정보·입출차·주차장 혼잡도·월별주차)와 지하철 승하차 기록을 결합해, 공연 날의 <b>시간대별 차량·지하철 몰림</b>을 공연별로 예보합니다. 공연 일정은 기관 누리집에서 자동으로 받아 오므로 새 공연이 올라오면 예보도 바로 생깁니다.</p>
+  <div class="live">
+    <span class="pill" id="liveParking">실시간 주차 확인 중…</span>
+    <span class="pill" id="todayEv">오늘 공연 확인 중…</span>
+    <span class="pill ver" id="ver"></span>
+  </div>
+</div></header>
+<nav><div class="wrap">
+  <button data-tab="visitor" class="on">관람객 예보</button>
+  <button data-tab="ops">운영자 보기</button>
+  <button data-tab="valid">예보 정확도 검증</button>
+  <button data-tab="data">사용 데이터</button>
+</div></nav>
+<main>
+<section id="visitor">
+  <div class="card">
+    <h2>날짜 고르기 <span class="muted" id="rangeNote"></span></h2>
+    <div class="dates" id="dates"></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <h2 id="dayTitle" style="margin:0">불러오는 중…</h2>
+      <div class="seg" id="wx"><button data-sc="clear" class="on">맑음 가정</button><button data-sc="rain">저녁 비 가정</button></div>
+    </div>
+    <div id="wxNote" class="muted" style="margin-top:4px"></div>
+    <div id="evList" style="margin-top:8px"></div>
+    <div class="grid" id="kpis" style="margin-top:12px"></div>
+  </div>
+  <div class="card"><h2>이렇게 움직이세요</h2><div id="tips" class="tip"></div><div id="venueBox" style="margin-top:12px"></div></div>
+  <div class="card"><h2>차량 — 올림픽공원 주차장 입차·출차 (대/시간)</h2><div class="chart" id="chPark"></div>
+    <div class="legend"><span><i style="background:var(--pri)"></i>입차 예보</span><span><i style="background:var(--acc)"></i>출차 예보</span><span><i style="background:#e9a23b"></i>붐빌 때(상위 20%) 출차</span><span><i style="background:var(--base)"></i>공연 정보를 뺀 같은 날(점선)</span></div>
+    <p class="muted">학습: 올림픽공원 입출차 정보 2024년 7월 215,528건 + 공연 일정(월별주차현황으로 계절 보정). 기관 오픈API(2025년 입출차 전체구역·연계 데이터)를 받으면 1년치·주차구역별로 다시 학습합니다.</p></div>
+  <div class="card"><h2>지하철 — 9호선 올림픽공원·한성백제역 (명/시간)</h2><div class="chart" id="chL9"></div>
+    <div class="legend"><span><i style="background:var(--pri)"></i>하차(도착)</span><span><i style="background:var(--acc)"></i>승차(귀가)</span><span><i style="background:#e9a23b"></i>붐빌 때(상위 20%) 승차</span><span><i style="background:var(--base)"></i>공연 정보를 뺀 같은 날(점선)</span></div></div>
+  <div class="card"><h2>지하철 — 5호선 올림픽공원·8호선 몽촌토성역 (명/시간)</h2><div class="chart" id="chL58"></div>
+    <div class="legend"><span><i style="background:var(--pri)"></i>하차(도착)</span><span><i style="background:var(--acc)"></i>승차(귀가)</span><span><i style="background:#e9a23b"></i>붐빌 때(상위 20%) 승차</span><span><i style="background:var(--base)"></i>공연 정보를 뺀 같은 날(점선)</span></div></div>
+  <div class="card" id="simCard"><h2>대응 효과 계산 — 이렇게 하면 몰림이 얼마나 줄어드나</h2>
+    <p class="muted">공연 때문에 늘어난 몫(예보 − 공연 정보를 뺀 같은 날)만 움직여 계산합니다. 시간 단위 자료라 ‘1시간 늦춤’ 단위로 계산합니다.</p>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;margin:8px 0">
+      <label>종료 후 1시간 늦게 움직이는 비율 <b id="pv">30</b>%<br><input type="range" id="p" min="0" max="80" step="5" value="30" style="width:240px"></label>
+      <label>자가용 → 대중교통 전환 비율 <b id="qv">20</b>%<br><input type="range" id="q" min="0" max="50" step="5" value="20" style="width:240px"></label>
+      <label>차량 1대당 관람객(가정) <b id="rv">2.0</b>명<br><input type="range" id="r" min="1" max="3" step="0.1" value="2" style="width:200px"></label>
+    </div>
+    <div class="grid" id="simK"></div><div class="chart" id="chSim"></div>
+    <div class="legend"><span><i style="background:#e4572e"></i>출차(지금)</span><span><i style="background:#2a9d8f"></i>출차(대응 후)</span><span><i style="background:#1f4e9e"></i>9호선 귀가(지금)</span><span><i style="background:#7b5cd6"></i>9호선 귀가(대응 후)</span></div></div>
+</section>
+<section id="ops" class="hidden">
+  <div class="card"><h2>다가오는 대형공연일·주말 혼잡 예보표</h2>
+    <p class="muted" id="opsNote"></p>
+    <div class="chart"><table id="opsTbl"></table></div></div>
+  <div class="card"><h2>기관 실시간 주차 표시값 기록(예보를 갱신할 때마다 자동 기록)</h2><div class="chart" id="chLive"></div><p class="muted" id="liveNote"></p></div>
+  <div class="card"><h2>현행 「주차장 예상 이용률 서비스」와 무엇이 다른가</h2>
+    <table><tr><th>구분</th><th>현행(올림픽공원 온라인예약 화면)</th><th>올팍 타이밍</th></tr>
+    <tr><td>제공 범위</td><td>주말(토·일)만, 동2·남2·북2문 합계</td><td>평일 포함 모든 날, 차량 입차·출차 + 지하철 4개 역 하차·승차</td></tr>
+    <tr><td>시간 해상도</td><td>30분 단위 표지만 공연일 저녁 내내 같은 값(예: 11/21 17:00~21:00 모두 89%)</td><td>시간대마다 다른 값 — 도착 몰림·퇴장 몰림을 구분, ‘붐빌 때’ 상한도 함께</td></tr>
+    <tr><td>근거 공개</td><td>“실제와 차이가 있을 수 있음” 안내만</td><td>학습에 쓰지 않은 기간으로 잰 오차를 공개(검증 탭)</td></tr>
+    <tr><td>행동 안내</td><td>없음</td><td>도착 권장 시각·퇴장 시차·덜 붐비는 역과 출구·주차장(가까운 곳과 넓은 곳)</td></tr>
+    <tr><td>갱신</td><td>—</td><td>기관 누리집 공연 일정을 자동으로 받아 예보 생성(서버 함수), 실시간 표시값 15분 기록</td></tr></table>
+    <p class="muted">현행 화면: https://www.ksponco.or.kr/online/main/parking.do (2026-11-16·17 열람)</p></div>
+  <div class="card"><h2>운영 활용 — 예보를 업무로 옮기는 기준(제안)</h2>
+    <table><tr><th>예보 신호</th><th>현장 조치(예)</th></tr>
+    <tr><td>입차 예보가 공연 정보를 뺀 같은 날의 1.5배를 넘는 첫 시각</td><td>그 1시간 전 출입문(동2·남2·북2) 안내 인력 배치, 누리집·앱 공지 「대중교통 이용」</td></tr>
+    <tr><td>만차 위험 ‘높음’(주말·휴일 대형공연일)</td><td>전날 공지, 넓은 주차장(P1 562면) 우선 안내, 예매처 공지 요청</td></tr>
+    <tr><td>공연 종료 후 승차 예보 피크</td><td>올림픽공원역 3번 출구 동선 분리, 한성백제역(남4문)·몽촌토성역 분산 안내</td></tr>
+    <tr><td>출차 예보 피크</td><td>출구 정산 인력 증원, 「퇴장 시차」 안내</td></tr></table></div>
+</section>
+<section id="valid" class="hidden">
+  <div class="card"><h2>예보는 얼마나 맞았나 — 학습에 쓰지 않은 기간으로 잼</h2>
+    <p class="muted">‘공연 정보 없이’는 공연 변수를 빼고 따로 학습한 모델, ‘단순 규칙’은 과거 대형공연일의 같은 요일군·시각 평균입니다. 오차율은 대형공연일 그날 최대치 기준입니다.</p>
+    <div class="chart"><table id="metTbl"></table></div></div>
+  <div class="card"><h2>사례 ① 2026년 9호선 귀가 승차 — 2025년까지만 학습하고 2026년을 맞혀 보기</h2><div id="valL9Sel" class="seg" style="margin-bottom:8px"></div><div class="chart" id="chVL9"></div>
+    <div class="legend"><span><i style="background:#111"></i>실측</span><span><i style="background:var(--acc)"></i>공연 반영 예보</span><span><i style="background:#e9a23b"></i>붐빌 때(상위 20%)</span><span><i style="background:var(--base)"></i>공연 정보 없이 학습한 예보(점선)</span></div></div>
+  <div class="card"><h2>사례 ② 2024-07 공연일 차량 입차·출차 — 같은 공연의 날들을 통째로 빼고 학습한 뒤 맞혀 보기</h2><div id="valPkSel" class="seg" style="margin-bottom:8px"></div><div class="chart" id="chVPk"></div>
+    <div class="legend"><span><i style="background:#111"></i>실측 입차</span><span><i style="background:var(--pri)"></i>입차 예보</span><span><i style="background:#555"></i>실측 출차(가는 선)</span><span><i style="background:var(--acc)"></i>출차 예보</span></div></div>
+</section>
+<section id="data" class="hidden">
+  <div class="card"><h2>사용한 공공데이터</h2><div class="chart"><table id="dsTbl"></table></div></div>
+  <div class="card"><h2>데이터를 다루며 확인한 점 — 기관 데이터 개선 제안</h2>
+    <div class="chart"><table><tr><th>발견</th><th>근거</th><th>제안</th></tr>
+    <tr><td>실시간 주차 표시값이 새벽에도 크게 남아 있음</td><td>11/17 01시대 1,096대(2,200면의 50%), 11/16 13시 2,060대. 기관 설명: 장기주차 차량은 출차일이 비어 실제와 다를 수 있음</td><td>미출차·월주차 구분 칸, 야간 기준값 보정 — 운영자 보기에 15분 기록 공개</td></tr>
+    <tr><td>현행 예상 이용률 화면의 공연 목록과 개방 공연정보가 다름</td><td>11/21 화면: 로이킴·산타와 빈양말·미스터트롯 / 개방 데이터: 로이킴 1건</td><td>같은 원천으로 통일(대관 행사 포함)</td></tr>
+    <tr><td>주차장 혼잡도 정보 등록시간의 분·초 자리에 월·일이 기록됨</td><td>예: 등록일 2025-02-15, 등록시간 11:02:15 — 699건 전부 같은 형식</td><td>시각 필드 정정</td></tr>
+    <tr><td>입출차 파일 완전 중복 21,895행(10.2%)</td><td>같은 입차·출차 일시가 겹치는 행. 10분 이내 출차의 44%</td><td>이중 기록인지 확인·명세</td></tr>
+    <tr><td>입출차(2024-07, 215,528건)와 월별주차현황(같은 달 59,808대)의 집계 기준이 다름</td><td>10분 이내 출차(무료) 31.4%</td><td>집계 범위(출입문·무료 출차 포함 여부) 명세</td></tr>
+    <tr><td>공연정보의 공연시간이 자유 서술</td><td>“금 오후 8시 / 토 오후 6시 / 일 오후 4시” 등 — 규칙 파서로 회차 3,967개로 풀어 씀</td><td>회차(날짜·시작시각) 단위 칸 추가</td></tr>
+    <tr><td>공연정보에 관객 규모 칸 없음</td><td>최고 티켓가·공연장·회차 수를 규모 대리지표로 사용. 동시 공연이 겹친 날 오차가 큼</td><td>공연장별 판매석 규모(등급) 개방 검토</td></tr></table></div></div>
+  <div class="card"><h2>인증키 연결 후 바로 붙는 것</h2>
+    <p>오픈API(입출차 전체구역 2025, 차량입출차·공연·날씨 연계 2025, 실시간 주차현황, 대관정보, 운영현황)는 공공데이터포털에서 문화데이터광장(api.kcisa.kr)으로 연결되는 방식이라 그쪽 인증키가 필요합니다. 키를 서버 함수 환경변수에 넣으면 ① 주차 모델을 1개월→1년으로 다시 학습하고 ② 주차구역(P1A~P11)별 예보와 ③ 실시간 대수로 당일 예보 보정을 붙입니다.</p></div>
+</section>
+</main>
+<footer>
+  자료: 한국체육산업개발(주) 개방 공공데이터(공공데이터포털)·올림픽공원 누리집 공개 정보, 서울교통공사 역별 시간대별 승하차인원(공공데이터포털), 기상 Open-Meteo(CC BY 4.0, ERA5·예보). 예보는 참고용이며 실제 상황과 다를 수 있습니다.<br>
+  제작: 브랜드 AI · 2026 한국체육산업개발 공공데이터 활용 경진대회 출품작 · <span id="gen"></span>
+</footer>
+<script>
+const H=[...Array(18).keys()].map(i=>i+6);
+const CLS={DOME:'KSPO DOME',ARENA:'티켓링크 라이브 아레나',HALL:'올림픽홀',ART:'우리금융아트홀',LAWN:'88잔디마당·수변무대'};
+const BIG=['DOME','ARENA','HALL','LAWN'];
+const WD=['일','월','화','수','목','금','토'];
+let SUM,DAY,V,S,DS,cur,sc='clear',cache={};
+const $=s=>document.querySelector(s);
+const fmt=n=>Math.round(n).toLocaleString('ko-KR');
+const hh=x=>{const h=Math.floor(x),m=Math.round((x-h)*60);return h+':'+String(m).padStart(2,'0')};
+const ratio=(v,b)=>b<200?null:v/b;
+const rtxt=(v,b)=>{const r=ratio(v,b);return r===null?'평소 적은 시간':`공연 정보 뺀 같은 날의 ${r.toFixed(1)}배`};
+function line(series,{w=1000,h=260,ymax=null,marks=[]}={}){
+  const pad={l:44,r:12,t:12,b:26};const all=series.flatMap(s=>s.v);const ym=ymax||Math.max(10,...all)*1.1;
+  const X=i=>pad.l+i*(w-pad.l-pad.r)/(H.length-1),Y=v=>h-pad.b-(v/ym)*(h-pad.t-pad.b);
+  let g=`<svg viewBox="0 0 ${w} ${h}" width="100%" style="min-width:560px" role="img">`;
+  const step=Math.pow(10,Math.floor(Math.log10(ym)));const tk=ym/step>5?step*2:step;
+  for(let v=0;v<=ym;v+=tk){g+=`<line x1="${pad.l}" x2="${w-pad.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="#eef0f5"/><text x="${pad.l-6}" y="${Y(v)+4}" font-size="11" text-anchor="end" fill="#8a93a6">${fmt(v)}</text>`}
+  marks.forEach(m=>{const x=pad.l+(m.x-6)*(w-pad.l-pad.r)/(H.length-1);if(m.x<6||m.x>23.5)return;g+=`<line x1="${x}" x2="${x}" y1="${pad.t}" y2="${h-pad.b}" stroke="${m.c||'#c9cfdb'}" stroke-dasharray="3 3"/><text x="${x+3}" y="${pad.t+10}" font-size="11" fill="#5b6478">${m.t}</text>`});
+  H.forEach((hr,i)=>{if(i%2==0)g+=`<text x="${X(i)}" y="${h-8}" font-size="11" text-anchor="middle" fill="#8a93a6">${hr}시</text>`});
+  series.forEach(s=>{const d=s.v.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+    g+=`<path d="${d}" fill="none" stroke="${s.c}" stroke-width="${s.wd||2.6}" ${s.dash?'stroke-dasharray="5 4"':''} stroke-linejoin="round"/>`;
+    if(s.pts) s.v.forEach((v,i)=>g+=`<circle cx="${X(i)}" cy="${Y(v)}" r="2.6" fill="${s.c}"/>`)});
+  return g+'</svg>';
+}
+function risk(day){const big=day.events.some(e=>BIG.includes(e.cls));
+  if(big&&day.dtype>=2)return['높음','b-hi','2025년 같은 조건(주말·휴일 대형공연일) 96일 중 57일 만차 고지'];
+  if(big)return['주의','b-mid','2025년 평일 대형공연일 37일 중 만차 고지 1일·혼잡 이상 3일'];
+  return['보통','b-lo','2025년 대형공연이 없는 날 190일 중 만차 고지 1일'];}
+function peak(s,from=0){let i=from;for(let k=from;k<18;k++)if(s.mean[k]>s.mean[i])i=k;return {i,h:H[i],v:s.mean[i],q:s.q80[i],b:s.base[i]}}
+function bigEnd(day){const b=day.events.filter(e=>BIG.includes(e.cls));return b.length?Math.max(...b.map(e=>e.end)):null}
+function renderDates(){
+  let h='';
+  SUM.days.forEach(day=>{const d=new Date(day.date+'T00:00:00');const big=day.events.some(e=>BIG.includes(e.cls));const any=day.events.length;const [rt,rc]=risk(day);
+    h+=`<div class="date ${day.date===cur?'on':''}" data-k="${day.date}"><div class="d">${d.getMonth()+1}/${d.getDate()}</div><div class="w">${WD[d.getDay()]}${day.holiday?' · 휴일':''}</div><div style="margin-top:4px">${any?`<span class="dot" style="background:${big?'var(--bad)':'var(--warn)'}"></span>`:'<span class="dot" style="background:#d6dbe5"></span>'}<span class="badge ${rc}" style="font-size:10.5px;padding:1px 5px">${rt}</span></div></div>`});
+  $('#dates').innerHTML=h;
+  document.querySelectorAll('.date').forEach(el=>el.onclick=()=>{cur=el.dataset.k;history.replaceState(null,'','?d='+cur);renderDates();loadDay();});
+  const on=document.querySelector('.date.on');if(on)on.scrollIntoView({inline:'center',block:'nearest'});
+}
+async function getDay(d){if(cache[d])return cache[d];let r=await fetch('data/fc/'+d+'.json');if(!r.ok)r=await fetch('/api/forecast?d='+d);if(!r.ok)throw new Error('api');const j=await r.json();cache[d]=j;return j}
+async function loadDay(){$('#dayTitle').textContent='예보 계산 중…';try{DAY=await getDay(cur);renderDay()}catch(e){$('#dayTitle').textContent='예보를 불러오지 못했습니다 — 잠시 뒤 다시 시도해 주세요'}}
+function renderDay(){
+  const day=DAY,x=day.series[sc],d=new Date(cur+'T00:00:00');const [rt,rc,rnote]=risk(day);
+  const big=day.events.filter(e=>BIG.includes(e.cls));const le=bigEnd(day);const fi=le?Math.max(0,Math.floor(le)-6):0;
+  $('#dayTitle').innerHTML=`${d.getMonth()+1}월 ${d.getDate()}일(${WD[d.getDay()]}) ${day.holiday?'<span class="tag">휴일</span>':''} <span class="badge ${rc}">만차 위험 ${rt}</span> <span class="muted">${rnote}</span>`;
+  const evs=[];const seen=new Set();day.events.forEach(e=>{const k=e.title+e.start;if(!seen.has(k)){seen.add(k);evs.push(e)}});
+  $('#evList').innerHTML=evs.length?evs.map(e=>`<div class="ev"><span class="tag">${CLS[e.cls]||e.cls}</span><div><b>${e.link?`<a href="${e.link}" target="_blank" rel="noopener">${e.title}</a>`:e.title}</b><div class="muted">${hh(e.start)} 시작 · 종료 예상 ${hh(e.end)}${e.imputed?' · 공연 시각이 비어 있어 기본값 사용':''}</div></div></div>`).join(''):'<div class="muted">이날 등록된 공연이 없습니다 — 평소 흐름 예보입니다.</div>';
+  const pI=peak(x.pk_IN),pO=peak(x.pk_OUT,fi),l9=peak(x.l9_on,fi),l58=peak(x.l58_on,fi);
+  const lbl=big.length?'귀가':'승차 최대';
+  $('#kpis').innerHTML=[
+   `<div class="kpi"><div class="t">차량 입차 몰림</div><div class="v">${pI.h}시 ${fmt(pI.v)}대</div><div class="s">${rtxt(pI.v,pI.b)} · 붐빌 때 ${fmt(pI.q)}대</div></div>`,
+   `<div class="kpi"><div class="t">차량 출차 몰림</div><div class="v">${pO.h}시 ${fmt(pO.v)}대</div><div class="s">${rtxt(pO.v,pO.b)} · 붐빌 때 ${fmt(pO.q)}대</div></div>`,
+   `<div class="kpi"><div class="t">${lbl} 지하철(9호선 2개 역)</div><div class="v">${l9.h}시 ${fmt(l9.v)}명</div><div class="s">${rtxt(l9.v,l9.b)} · 붐빌 때 ${fmt(l9.q)}명</div></div>`,
+   `<div class="kpi"><div class="t">${lbl} 지하철(5호선·8호선)</div><div class="v">${l58.h}시 ${fmt(l58.v)}명</div><div class="s">${rtxt(l58.v,l58.b)} · 붐빌 때 ${fmt(l58.q)}명</div></div>`].join('');
+  let t=[];
+  if(big.length){
+    const st=Math.min(...big.map(e=>e.start));
+    const ex=x.pk_IN.mean.map((v,i)=>v-x.pk_IN.base[i]);const thr=Math.max(60,0.5*Math.max(...ex));const first=ex.findIndex(v=>v>=thr);
+    t.push(first>=0?`<b>도착</b> — 차량은 <b>${H[first]}시</b>부터 몰립니다. 자가용이면 <b>${H[first]-1}시 이전</b> 입차, 그 뒤라면 지하철을 권합니다(공연 ${hh(st)} 시작).`:`<b>도착</b> — 차량 몰림이 크지 않은 날입니다(공연 ${hh(st)} 시작).`);
+    const after=Math.min(17,l9.i+1);const drop=x.l9_on.mean[after];
+    t.push(`<b>퇴장</b> — 공연이 ${hh(le)}쯤 끝나면 <b>${pO.h}시</b>에 출차가, <b>${l9.h}시</b>에 지하철 귀가가 가장 몰립니다(9호선 ${fmt(l9.v)}명, 붐빌 때 ${fmt(l9.q)}명). 그다음 시간에는 ${fmt(drop)}명으로 줄어듭니다.`);
+    const r9=ratio(l9.v,l9.b)||0,r58=ratio(l58.v,l58.b)||0;
+    t.push(`<b>역 분산</b> — 귀가 몰림: 9호선 ${r9.toFixed(1)}배 · 5·8호선 ${r58.toFixed(1)}배. ${r9>=r58?'8호선 몽촌토성역(1번 출구)·5호선 쪽':'9호선 한성백제역(2번 출구, 남4문)'}을 고려하세요.`);
+  } else t.push(day.dtype>=2?'대형 공연이 없는 주말·휴일입니다. 낮에는 공원 방문 차량으로 주차장이 붐빌 수 있습니다.':'대형 공연이 없는 평일입니다. 아침·저녁 출퇴근 시간대 흐름이 중심입니다.');
+  if(sc==='rain'){const c=DAY.series.clear.l9_on.mean,r=x.l9_on.mean;const a=Math.max(...c),b=Math.max(...r);t.push(`<b>비</b> — 저녁 비를 가정하면 9호선 승차 최대치가 ${fmt(a)}명 → ${fmt(b)}명으로 예보됩니다.`)}
+  $('#tips').innerHTML=t.map(s=>'<div style="margin:4px 0">• '+s+'</div>').join('');
+  const vs=[...new Set(big.map(e=>e.cls))].filter(c=>S.venues[c]);
+  $('#venueBox').innerHTML=vs.length?'<table><tr><th>공연장</th><th>가장 가까운 주차장</th><th>넓은 주차장</th><th>출입문</th><th>지하철</th></tr>'+vs.map(c=>{const v=S.venues[c];return `<tr><td>${v.name}</td><td>${v.lot}${v.lot_cap?` (${v.lot_cap}대, 도보 ${v.walk})`:''}</td><td>P1 (562대, 도보 3~4분)</td><td>${v.gates}</td><td>${v.station}</td></tr>`}).join('')+'</table><p class="muted">'+S.source+'</p>':'';
+  const marks=big.length?[{x:Math.min(...big.map(e=>e.start)),t:'시작'},{x:le,t:'종료',c:'#e4572e'}]:[];
+  $('#chPark').innerHTML=line([{v:x.pk_IN.base,c:'#b9c3d6',dash:1,wd:1.6},{v:x.pk_OUT.base,c:'#e9b4a6',dash:1,wd:1.6},{v:x.pk_OUT.q80,c:'#e9a23b',wd:1.4},{v:x.pk_IN.mean,c:'#1f4e9e'},{v:x.pk_OUT.mean,c:'#e4572e'}],{marks});
+  $('#chL9').innerHTML=line([{v:x.l9_off.base,c:'#b9c3d6',dash:1,wd:1.6},{v:x.l9_on.base,c:'#e9b4a6',dash:1,wd:1.6},{v:x.l9_on.q80,c:'#e9a23b',wd:1.4},{v:x.l9_off.mean,c:'#1f4e9e'},{v:x.l9_on.mean,c:'#e4572e'}],{marks});
+  $('#chL58').innerHTML=line([{v:x.l58_off.base,c:'#b9c3d6',dash:1,wd:1.6},{v:x.l58_on.base,c:'#e9b4a6',dash:1,wd:1.6},{v:x.l58_on.q80,c:'#e9a23b',wd:1.4},{v:x.l58_off.mean,c:'#1f4e9e'},{v:x.l58_on.mean,c:'#e4572e'}],{marks});
+  weatherHint();sim();
+}
+function sim(){
+  if(!DAY)return;const x=DAY.series[sc];const p=+$('#p').value/100,q=+$('#q').value/100,r=+$('#r').value;$('#pv').textContent=Math.round(p*100);$('#qv').textContent=Math.round(q*100);$('#rv').textContent=r.toFixed(1);
+  const ex=s=>s.mean.map((v,i)=>Math.max(0,v-s.base[i]));
+  const eO=ex(x.pk_OUT),eI=ex(x.pk_IN),e9=ex(x.l9_on),e58=ex(x.l58_on),e9o=ex(x.l9_off),e58o=ex(x.l58_off);
+  // 1) 전환: 공연 몫 차량의 q가 대중교통으로 — 출차 몫 감소, 그 인원(×r)은 귀가 승차에 더함(9호선:5·8호선 = 공연 몫 비율)
+  const share9=(a,b)=>{const s=a.reduce((m,v)=>m+v,0),t=b.reduce((m,v)=>m+v,0);return s+t>0?s/(s+t):0.5};
+  const w9=share9(e9,e58);
+  let out=x.pk_OUT.mean.map((v,i)=>v-eO[i]*q);
+  let on9=x.l9_on.mean.map((v,i)=>v+eO[i]*q*r*w9);
+  // 2) 퇴장 시차: 남은 공연 몫의 p를 1시간 뒤로
+  const shift=(arr,exa)=>arr.map((v,i)=>v-exa[i]*p+(i>0?exa[i-1]*p:0));
+  const eO2=eO.map(v=>v*(1-q)),e92=e9.map((v,i)=>v+eO[i]*q*r*w9);
+  out=shift(out,eO2);on9=shift(on9,e92);
+  const mx=a=>Math.max(...a);const red=(a,b)=>((1-mx(b)/mx(a))*100);
+  const f=v=>(v>=0?'−':'+')+Math.abs(v).toFixed(0)+'%';
+  $('#simK').innerHTML=`<div class="kpi"><div class="t">출차 피크</div><div class="v">${fmt(mx(x.pk_OUT.mean))} → ${fmt(mx(out))}대</div><div class="s">${f(red(x.pk_OUT.mean,out))}</div></div>`+
+   `<div class="kpi"><div class="t">입차 피크(전환만)</div><div class="v">${fmt(mx(x.pk_IN.mean))} → ${fmt(mx(x.pk_IN.mean.map((v,i)=>v-eI[i]*q)))}대</div><div class="s">${f(red(x.pk_IN.mean,x.pk_IN.mean.map((v,i)=>v-eI[i]*q)))}</div></div>`+
+   `<div class="kpi"><div class="t">9호선 귀가 피크</div><div class="v">${fmt(mx(x.l9_on.mean))} → ${fmt(mx(on9))}명</div><div class="s">${f(red(x.l9_on.mean,on9))} (전환 인원 더함)</div></div>`+
+   (p>0.6?'<div class="kpi"><div class="t">주의</div><div class="s">60%가 넘게 늦추면 다음 시간에 새 몰림이 생길 수 있습니다.</div></div>':'');
+  $('#chSim').innerHTML=line([{v:x.pk_OUT.mean,c:'#e4572e'},{v:out,c:'#2a9d8f'},{v:x.l9_on.mean,c:'#1f4e9e',wd:1.6},{v:on9,c:'#7b5cd6',wd:1.6}],{h:230});
+}
+async function weatherHint(){
+  $('#wxNote').textContent='';
+  const d=new Date(cur+'T00:00:00'),now=new Date();const diff=(d-new Date(now.toDateString()))/864e5;
+  if(diff<0||diff>14){$('#wxNote').textContent='날씨: 15일 이후는 기상 예보가 없어 직접 선택하세요.';return}
+  try{const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=37.5206&longitude=127.1214&hourly=precipitation&timezone=Asia%2FSeoul&start_date=${cur}&end_date=${cur}`);const j=await r.json();
+    const p=j.hourly.precipitation.slice(16,23).reduce((a,b)=>a+b,0);
+    $('#wxNote').textContent=`기상 예보(Open-Meteo): ${cur} 16~22시 강수 ${p.toFixed(1)}mm → ${p>=1?'‘저녁 비’를 권합니다':'‘맑음’을 권합니다'}`;
+  }catch(e){$('#wxNote').textContent='기상 예보를 불러오지 못했습니다 — 직접 선택하세요.'}
+}
+function renderOps(){
+  const rows=SUM.days.filter(d=>d.peaks&&(d.events.some(e=>BIG.includes(e.cls))||d.dtype>=2));
+  $('#opsNote').textContent=`${SUM.days.length}일 중 대형공연일·주말·휴일 ${rows.length}일. 만차 위험은 2025년 「주차장 혼잡도 정보」 만차 고지 기록의 같은 조건 비율로 정합니다(주말·휴일 대형공연일 59%, 평일 대형공연일 3%). 배수는 공연 정보를 뺀 같은 날 대비이며, 평소 값이 작은 시간은 배수를 표시하지 않습니다.`;
+  let h='<tr><th>날짜</th><th>공연</th><th>만차 위험</th><th>입차 피크</th><th>출차 피크</th><th>9호선 귀가 피크(붐빌 때)</th><th>5·8호선 귀가 피크</th></tr>';
+  rows.forEach(day=>{const d=new Date(day.date+'T00:00:00');const [rt,rc]=risk(day);const P=day.peaks;const r=(o)=>{const x=ratio(o.v,o.base);return x===null?'':` · ${x.toFixed(1)}배`};
+    const evs=[...new Map(day.events.filter(e=>BIG.includes(e.cls)).map(e=>[e.cls+e.start,e])).values()];
+    h+=`<tr><td>${d.getMonth()+1}/${d.getDate()}(${WD[d.getDay()]})</td><td>${evs.map(e=>`${CLS[e.cls]} ${hh(e.start)}`).join('<br>')||'<span class="muted">대형 공연 없음</span>'}</td><td><span class="badge ${rc}">${rt}</span></td><td>${P.pk_IN.h}시${r(P.pk_IN)}</td><td>${P.pk_OUT.h}시${r(P.pk_OUT)}</td><td>${P.l9_on.h}시 ${fmt(P.l9_on.v)}명(${fmt(P.l9_on.q)})${r(P.l9_on)}</td><td>${P.l58_on.h}시 ${fmt(P.l58_on.v)}명${r(P.l58_on)}</td></tr>`});
+  $('#opsTbl').innerHTML=h;
+}
+async function liveFromLog(){
+  try{const pts=await (await fetch('data/live_log.json')).json();const l=pts[pts.length-1];
+    $('#liveParking').innerHTML=`누리집 주차 표시값 <b>${fmt(l[1])}</b> / ${fmt(l[2])}대 <span class="ver">${l[0].slice(5,10).replace('-','/')} ${l[0].slice(11,16)} 기록 · 3시간마다 갱신</span>`;
+  }catch(e){$('#liveParking').textContent='실시간 주차: 연결 대기'}
+}
+async function renderLive(){
+  try{const pts=await (await fetch('data/live_log.json')).json();
+    if(pts.length<3){$('#liveNote').textContent='기록을 모으는 중입니다.';return}
+    const w=1000,h=200,pad=40;pts.sort((a,b)=>a[0]<b[0]?-1:1);const t0=Date.parse(pts[0][0]),t1=Date.parse(pts[pts.length-1][0]);const ym=2300;
+    const X=t=>pad+(Date.parse(t)-t0)/(Math.max(1,t1-t0))*(w-pad-10),Y=v=>h-24-(v/ym)*(h-40);
+    let g=`<svg viewBox="0 0 ${w} ${h}" width="100%" style="min-width:560px">`;[0,1100,2200].forEach(v=>g+=`<line x1="${pad}" x2="${w-10}" y1="${Y(v)}" y2="${Y(v)}" stroke="#eef0f5"/><text x="${pad-4}" y="${Y(v)+4}" font-size="11" text-anchor="end" fill="#8a93a6">${fmt(v)}</text>`);
+    g+=`<path d="${pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join('')}" fill="none" stroke="#1f4e9e" stroke-width="2"/></svg>`;
+    $('#chLive').innerHTML=g;
+    const night=pts.filter(p=>{const hr=+p[0].slice(11,13);return hr>=0&&hr<=5}).map(p=>p[1]);
+    const day=pts.filter(p=>{const hr=+p[0].slice(11,13);return hr>=11&&hr<=16}).map(p=>p[1]);
+    $('#liveNote').textContent=`기록 ${pts.length}점(${pts[0][0].replace('T',' ')} ~ ${pts[pts.length-1][0].replace('T',' ')}). 새벽(0~5시) 최솟값 ${night.length?fmt(Math.min(...night))+'대':'기록 대기'} · 낮(11~16시) 최댓값 ${day.length?fmt(Math.max(...day))+'대':'기록 대기'} — 공원이 닫힌 새벽에도 남는 몫(장기·월주차·미출차 추정)으로, 기관 이용률 표시가 실제보다 높게 보일 수 있는 크기입니다.`;
+  }catch(e){$('#liveNote').textContent='기록을 불러오지 못했습니다.'}
+}
+function renderValid(){
+  const m=V.metrics;const p=x=>(x*100).toFixed(0)+'%';
+  let h='<tr><th>대상</th><th>검증 방법</th><th>대형공연일</th><th>최대치 오차율: 공연 정보 없이 → 단순 규칙 → <b>올팍 타이밍</b></th><th>가장 몰리는 시각 적중(±1시간)</th></tr>';
+  const a=m['l9_순승차'],b=m['l9_순하차'],c=m.park_series.IN,d=m.park_series.OUT,e=m['l58_승차'];
+  h+=`<tr><td>9호선 2개 역 귀가(승차)</td><td>2023~2025 학습 → 2026.1~7 예측</td><td>83일</td><td>${p(a.mape_peak0)} → ${p(a.mape_peak_rule)} → <b>${p(a.mape_peak)}</b></td><td><b>${p(a.peak_hour_exact)}</b> (${p(a.peak_hour_pm1)})</td></tr>`;
+  h+=`<tr><td>9호선 2개 역 도착(하차)</td><td>같음</td><td>83일</td><td>${p(b.mape_peak0)} → ${p(b.mape_peak_rule)} → <b>${p(b.mape_peak)}</b></td><td>${p(b.peak_hour_exact)} (${p(b.peak_hour_pm1)})</td></tr>`;
+  h+=`<tr><td>5·8호선 귀가(승차)</td><td>2025.1~9 학습 → 10~12월 예측</td><td>${e.n_days}일</td><td>${p(e.mape_peak0)} → — → <b>${p(e.mape_peak)}</b></td><td>${p(e.peak_hour_exact)} (${p(e.peak_hour_pm1)})</td></tr>`;
+  h+=`<tr><td>주차장 입차</td><td>2024-07, 같은 공연의 날들을 통째로 빼고 학습(4묶음)</td><td>9일</td><td>${p(c.mape_peak0)} → ${p(c.mape_peak_rule)} → <b>${p(c.mape_peak)}</b></td><td>—</td></tr>`;
+  h+=`<tr><td>주차장 출차</td><td>같음</td><td>9일</td><td>${p(d.mape_peak0)} → ${p(d.mape_peak_rule)} → <b>${p(d.mape_peak)}</b></td><td>—</td></tr>`;
+  $('#metTbl').innerHTML=h+`<tr><td colspan="5" class="muted">주차장 ‘점유 대수’는 1개월 자료로 검증 기준을 넘지 못해 화면에서 뺐습니다(공연 묶음 빼기 오차율 57%). 예보는 대형공연일 피크를 낮게 잡는 경향이 있어(9호선 귀가 83일 중 76%) ‘붐빌 때(상위 20%)’ 값을 함께 보입니다 — 이 값의 최대치 오차율은 ${p(a.q_mape)}입니다.</td></tr>`;
+  const l9k=Object.keys(V).filter(k=>k.startsWith('l9_')&&V[k].events);const pkk=Object.keys(V).filter(k=>k.startsWith('park_'));
+  $('#valL9Sel').innerHTML=l9k.map((k,i)=>`<button data-k="${k}" class="${i?'':'on'}">${k.slice(3)}</button>`).join('');
+  $('#valPkSel').innerHTML=pkk.map((k,i)=>`<button data-k="${k}" class="${i?'':'on'}">${k.slice(5)}</button>`).join('');
+  const evtxt=x=>x.events.map(e=>e[0]+' '+hh(e[1])+(e[3]?'(시각 미기재·기본값)':'')).join(' / ');
+  const dl9=k=>{const x=V[k];$('#chVL9').innerHTML=line([{v:x['순승차_p0'],c:'#b9c3d6',dash:1,wd:1.6},{v:x['순승차_q'],c:'#e9a23b',wd:1.4},{v:x['순승차_p'],c:'#e4572e'},{v:x['순승차'],c:'#111',wd:2,pts:1}],{})+`<p class="muted">공연: ${evtxt(x)}</p>`};
+  const dpk=k=>{const x=V[k];$('#chVPk').innerHTML=line([{v:x.IN,c:'#111',wd:2,pts:1},{v:x.IN_s,c:'#1f4e9e'},{v:x.OUT,c:'#555',wd:1.2,pts:1},{v:x.OUT_s,c:'#e4572e'}],{})+`<p class="muted">공연: ${evtxt(x)}</p>`};
+  document.querySelectorAll('#valL9Sel button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#valL9Sel button').forEach(x=>x.classList.remove('on'));b.classList.add('on');dl9(b.dataset.k)});
+  document.querySelectorAll('#valPkSel button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#valPkSel button').forEach(x=>x.classList.remove('on'));b.classList.add('on');dpk(b.dataset.k)});
+  dl9(l9k[0]);dpk(pkk[0]);
+}
+function renderData(){
+  $('#dsTbl').innerHTML='<tr><th>구분</th><th>데이터</th><th>기간</th><th>규모</th><th>쓰임</th></tr>'+DS.map(d=>`<tr><td>${d.kind}</td><td><a href="${d.url}" target="_blank" rel="noopener">${d.name}</a>${d.id!=='-'?` <span class="muted">(${d.id})</span>`:''}</td><td>${d.period}</td><td>${d.n}</td><td>${d.use}</td></tr>`).join('');
+}
+async function live(){
+  try{const j=await (await fetch('/api/live')).json();
+    if(j.parked!=null)$('#liveParking').innerHTML=`누리집 실시간 주차 표시값 <b>${fmt(j.parked)}</b> / ${fmt(j.capacity)}대 <span class="ver">${j.fetchedAt.slice(11,16)} · 새벽에도 남는 몫 포함</span>`;
+    else await liveFromLog();
+  }catch(e){await liveFromLog()}
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on');['visitor','ops','valid','data'].forEach(id=>$('#'+id).classList.toggle('hidden',id!==b.dataset.tab));window.scrollTo({top:0})});
+document.querySelectorAll('#wx button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#wx button').forEach(x=>x.classList.remove('on'));b.classList.add('on');sc=b.dataset.sc;renderDay()});
+['p','q','r'].forEach(id=>document.getElementById(id).oninput=sim);
+(async()=>{
+  [V,S,DS]=await Promise.all(['data/validation.json','data/static.json','data/datasets.json'].map(u=>fetch(u).then(r=>r.json())));
+  renderValid();renderData();live();renderLive();
+  const now=new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
+  try{SUM=await (await fetch('data/summary.json')).json()}catch(e){$('#dayTitle').textContent='예보 파일을 불러오지 못했습니다';return}
+  SUM.days=SUM.days.filter(d=>d.date>=now);if(!SUM.days.length){$('#dayTitle').textContent='예보 갱신 대기 중입니다';return}
+  $('#rangeNote').textContent=`— ${SUM.days[0].date}부터 ${SUM.days.length}일 · 공연 일정 ${SUM.meta.eventsFetchedAt.replace('T',' ')} 기관 누리집에서 자동 갱신`;
+  $('#ver').textContent='예보 갱신 '+SUM.meta.built.replace('T',' ');$('#gen').textContent='판 v3 · 모델 '+SUM.meta.model.slice(0,10);
+  const td=SUM.days[0];$('#todayEv').textContent=td.events.length?'오늘: '+[...new Set(td.events.map(e=>CLS[e.cls]+' '+hh(e.start)))].join(', '):'오늘: 등록된 공연 없음';
+  const q=new URLSearchParams(location.search).get('d');
+  cur=(q&&SUM.days.find(d=>d.date===q))?q:(SUM.days.find(d=>d.events.some(e=>BIG.includes(e.cls)))||SUM.days[0]).date;
+  renderDates();renderOps();loadDay();
+})();
+</script>
+</body>
+</html>
