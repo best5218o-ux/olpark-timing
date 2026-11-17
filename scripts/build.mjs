@@ -15,7 +15,7 @@ for (let i = 0; i < N; i++) {
   const big = clear.events.filter(r => ['DOME', 'ARENA', 'HALL', 'LAWN'].includes(r.cls));
   const item = { date: ds, dtype: clear.dtype, holiday: clear.holiday, events: clear.events.map(r => ({ title: r.title, cls: r.cls, start: r.start, end: r.end })) };
   if (big.length || clear.dtype >= 2) {
-    const f = clear.series, lastEnd = big.length ? Math.max(...big.map(r => r.end)) : 0, fi = big.length ? Math.max(0, Math.floor(lastEnd) - 6) : 0;
+    const f = clear.series, lastEnd = big.length ? Math.max(...big.map(r => r.end)) : 0, firstEnd = big.length ? Math.min(...big.map(r => r.end)) : 0, fi = big.length ? Math.max(0, Math.floor(firstEnd) - 6 - 1) : 0; // 가장 먼저 끝나는 공연 종료 1시간 전부터 퇴장 피크를 찾는다
     const pk = (s, a = 0) => { let i = a; for (let k = a; k < 18; k++) if (s.mean[k] > s.mean[i]) i = k; return { h: i + 6, v: s.mean[i], q: s.q80[i], base: s.base[i] }; };
     item.peaks = { pk_IN: pk(f.pk_IN), pk_OUT: pk(f.pk_OUT, fi), l9_on: pk(f.l9_on, fi), l58_on: pk(f.l58_on, fi) };
   }

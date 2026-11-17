@@ -28,7 +28,7 @@ export default async (req: Request) => {
     if (big.length || dt >= 2) {
       const f = forecastDay(model, events, ds, 0).series
       const lastEnd = big.length ? Math.max(...big.map(r => r.end)) : 0
-      const from_i = big.length ? Math.max(0, Math.floor(lastEnd) - 6) : 0
+      const from_i = big.length ? Math.max(0, Math.floor(Math.min(...big.map(r => r.end))) - 6 - 1) : 0
       const pk = (s: any, a = 0) => { let i = a; for (let k = a; k < 18; k++) if (s.mean[k] > s.mean[i]) i = k; return { h: i + 6, v: s.mean[i], q: s.q80[i], base: s.base[i] } }
       item.peaks = { pk_IN: pk(f.pk_IN), pk_OUT: pk(f.pk_OUT, from_i), l9_on: pk(f.l9_on, from_i), l58_on: pk(f.l58_on, from_i) }
     }

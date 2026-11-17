@@ -108,7 +108,7 @@ a{color:var(--pri)}
   <div class="card"><h2>현행 「주차장 예상 이용률 서비스」와 무엇이 다른가</h2>
     <table><tr><th>구분</th><th>현행(올림픽공원 온라인예약 화면)</th><th>올팍 타이밍</th></tr>
     <tr><td>제공 범위</td><td>주말(토·일)만, 동2·남2·북2문 합계</td><td>평일 포함 모든 날, 차량 입차·출차 + 지하철 4개 역 하차·승차</td></tr>
-    <tr><td>시간 해상도</td><td>30분 단위 표지만 공연일 저녁 내내 같은 값(예: 11/21 17:00~21:00 모두 89%)</td><td>시간대마다 다른 값 — 도착 몰림·퇴장 몰림을 구분, ‘붐빌 때’ 상한도 함께</td></tr>
+    <tr><td>시간 해상도</td><td>30분 단위 표지만 공연일 저녁 내내 같은 값(예: 11/21 17:00~21:00 모두 89%)</td><td>시간대마다 다른 값 — 도착 몰림·퇴장 몰림을 구분, ‘붐빌 때(상위 20%)’ 값도 함께</td></tr>
     <tr><td>근거 공개</td><td>“실제와 차이가 있을 수 있음” 안내만</td><td>학습에 쓰지 않은 기간으로 잰 오차를 공개(검증 탭)</td></tr>
     <tr><td>행동 안내</td><td>없음</td><td>도착 권장 시각·퇴장 시차·덜 붐비는 역과 출구·주차장(가까운 곳과 넓은 곳)</td></tr>
     <tr><td>갱신</td><td>—</td><td>기관 누리집 공연 일정을 자동으로 받아 예보 생성(서버 함수), 실시간 표시값 15분 기록</td></tr></table>
@@ -177,7 +177,7 @@ function risk(day){const big=day.events.some(e=>BIG.includes(e.cls));
   if(big)return['주의','b-mid','2025년 평일 대형공연일 37일 중 만차 고지 1일·혼잡 이상 3일'];
   return['보통','b-lo','2025년 대형공연이 없는 날 190일 중 만차 고지 1일'];}
 function peak(s,from=0){let i=from;for(let k=from;k<18;k++)if(s.mean[k]>s.mean[i])i=k;return {i,h:H[i],v:s.mean[i],q:s.q80[i],b:s.base[i]}}
-function bigEnd(day){const b=day.events.filter(e=>BIG.includes(e.cls));return b.length?Math.max(...b.map(e=>e.end)):null}
+function bigEnd(day){const b=day.events.filter(e=>BIG.includes(e.cls));return b.length?Math.min(...b.map(e=>e.end)):null}
 function renderDates(){
   let h='';
   SUM.days.forEach(day=>{const d=new Date(day.date+'T00:00:00');const big=day.events.some(e=>BIG.includes(e.cls));const any=day.events.length;const [rt,rc]=risk(day);
@@ -190,7 +190,7 @@ async function getDay(d){if(cache[d])return cache[d];let r=await fetch('data/fc/
 async function loadDay(){$('#dayTitle').textContent='예보 계산 중…';try{DAY=await getDay(cur);renderDay()}catch(e){$('#dayTitle').textContent='예보를 불러오지 못했습니다 — 잠시 뒤 다시 시도해 주세요'}}
 function renderDay(){
   const day=DAY,x=day.series[sc],d=new Date(cur+'T00:00:00');const [rt,rc,rnote]=risk(day);
-  const big=day.events.filter(e=>BIG.includes(e.cls));const le=bigEnd(day);const fi=le?Math.max(0,Math.floor(le)-6):0;
+  const big=day.events.filter(e=>BIG.includes(e.cls));const le=bigEnd(day);const fi=le?Math.max(0,Math.floor(le)-6-1):0;
   $('#dayTitle').innerHTML=`${d.getMonth()+1}월 ${d.getDate()}일(${WD[d.getDay()]}) ${day.holiday?'<span class="tag">휴일</span>':''} <span class="badge ${rc}">만차 위험 ${rt}</span> <span class="muted">${rnote}</span>`;
   const evs=[];const seen=new Set();day.events.forEach(e=>{const k=e.title+e.start;if(!seen.has(k)){seen.add(k);evs.push(e)}});
   $('#evList').innerHTML=evs.length?evs.map(e=>`<div class="ev"><span class="tag">${CLS[e.cls]||e.cls}</span><div><b>${e.link?`<a href="${e.link}" target="_blank" rel="noopener">${e.title}</a>`:e.title}</b><div class="muted">${hh(e.start)} 시작 · 종료 예상 ${hh(e.end)}${e.imputed?' · 공연 시각이 비어 있어 기본값 사용':''}</div></div></div>`).join(''):'<div class="muted">이날 등록된 공연이 없습니다 — 평소 흐름 예보입니다.</div>';
@@ -287,7 +287,7 @@ function renderValid(){
   h+=`<tr><td>5·8호선 귀가(승차)</td><td>2025.1~9 학습 → 10~12월 예측</td><td>${e.n_days}일</td><td>${p(e.mape_peak0)} → — → <b>${p(e.mape_peak)}</b></td><td>${p(e.peak_hour_exact)} (${p(e.peak_hour_pm1)})</td></tr>`;
   h+=`<tr><td>주차장 입차</td><td>2024-07, 같은 공연의 날들을 통째로 빼고 학습(4묶음)</td><td>9일</td><td>${p(c.mape_peak0)} → ${p(c.mape_peak_rule)} → <b>${p(c.mape_peak)}</b></td><td>—</td></tr>`;
   h+=`<tr><td>주차장 출차</td><td>같음</td><td>9일</td><td>${p(d.mape_peak0)} → ${p(d.mape_peak_rule)} → <b>${p(d.mape_peak)}</b></td><td>—</td></tr>`;
-  $('#metTbl').innerHTML=h+`<tr><td colspan="5" class="muted">주차장 ‘점유 대수’는 1개월 자료로 검증 기준을 넘지 못해 화면에서 뺐습니다(공연 묶음 빼기 오차율 57%). 예보는 대형공연일 피크를 낮게 잡는 경향이 있어(9호선 귀가 83일 중 76%) ‘붐빌 때(상위 20%)’ 값을 함께 보입니다 — 이 값의 최대치 오차율은 ${p(a.q_mape)}입니다.</td></tr>`;
+  $('#metTbl').innerHTML=h+`<tr><td colspan="5" class="muted">주차장 ‘점유 대수’는 1개월 자료로 검증 기준을 넘지 못해 화면에서 뺐습니다(공연 묶음 빼기 오차율 57%). 예보는 대형공연일 피크를 낮게 잡는 경향이 있어(9호선 귀가 83일 중 76%) ‘붐빌 때(상위 20%)’ 값을 함께 보입니다 — 이 값의 최대치 오차율은 ${p(a.q_mape)}, 실측이 이 값 이하였던 날은 ${p(a.p80_cover)}로 아직 낮게 잡습니다.</td></tr>`;
   const l9k=Object.keys(V).filter(k=>k.startsWith('l9_')&&V[k].events);const pkk=Object.keys(V).filter(k=>k.startsWith('park_'));
   $('#valL9Sel').innerHTML=l9k.map((k,i)=>`<button data-k="${k}" class="${i?'':'on'}">${k.slice(3)}</button>`).join('');
   $('#valPkSel').innerHTML=pkk.map((k,i)=>`<button data-k="${k}" class="${i?'':'on'}">${k.slice(5)}</button>`).join('');
