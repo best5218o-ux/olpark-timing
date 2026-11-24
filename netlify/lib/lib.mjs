@@ -160,7 +160,7 @@ export function forecastDay(model, events, dstr, rainMm) {
   const meta = model._meta, hol = new Set(meta.holidays);
   const rows = expand(events, dstr, dstr);
   const out = { date: dstr, dtype: dtype(dstr, hol), holiday: hol.has(dstr), hours: HOURS, events: rows.filter(r => CLS.includes(r.cls)).map(r => ({ title: r.title, cls: r.cls, start: r.start, end: r.end, imputed: r.imputed, link: r.link })), series: {} };
-  for (const k of ['l9_off', 'l9_on', 'l58_off', 'l58_on', 'pk_IN', 'pk_OUT']) {
+  for (const k of ['l9_off', 'l9_on', 'l58_off', 'l58_on', 'pk_IN', 'pk_OUT', 'lp', 'spd'].filter(k => model[k])) {
     const usem = !k.startsWith('pk');
     const F = features(dstr, HOURS, rows, meta, rainMm, hol, usem);
     const s = usem ? 1 : meta.seasonal[String(D(dstr).getUTCMonth() + 1)];
@@ -168,6 +168,7 @@ export function forecastDay(model, events, dstr, rainMm) {
     for (const f of F) {
       const p = predict(model[k].mean, f), p0 = predict(model[k].mean, strip(f)), q = predict(model[k].q80, f);
       const adj = usem ? 0 : p0 * s - p0; // 주차: 평소 몫만 계절 보정
+      if (k === 'spd') { const mv = Math.round(p * 10) / 10; mean.push(mv); base.push(Math.round(p0 * 10) / 10); q80.push(Math.min(mv, Math.round(q * 10) / 10)); continue; } // 속도: '막힐 때'(하위 20%) 값은 예보보다 빠르게 두지 않는다
       const mv = Math.max(0, Math.round(p + adj)); mean.push(mv); base.push(Math.max(0, Math.round(p0 + adj))); q80.push(Math.max(mv, Math.round(q + adj))); // 붐빌 때 값은 예보보다 작게 두지 않는다
     }
     out.series[k] = { mean, base, q80 };

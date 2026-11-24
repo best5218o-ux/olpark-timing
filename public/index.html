@@ -90,6 +90,12 @@ a{color:var(--pri)}
     <div class="legend"><span><i style="background:var(--pri)"></i>하차(도착)</span><span><i style="background:var(--acc)"></i>승차(귀가)</span><span><i style="background:#e9a23b"></i>붐빌 때(상위 20%) 승차</span><span><i style="background:var(--base)"></i>공연 정보를 뺀 같은 날(점선)</span></div></div>
   <div class="card"><h2>지하철 — 5호선 올림픽공원·8호선 몽촌토성역 (명/시간)</h2><div class="chart" id="chL58"></div>
     <div class="legend"><span><i style="background:var(--pri)"></i>하차(도착)</span><span><i style="background:var(--acc)"></i>승차(귀가)</span><span><i style="background:#e9a23b"></i>붐빌 때(상위 20%) 승차</span><span><i style="background:var(--base)"></i>공연 정보를 뺀 같은 날(점선)</span></div></div>
+  <div class="card" id="lpCard"><h2>사람 — 올림픽공원 일대(오륜동) 머무는 인원 (명/시간)</h2><div class="chart" id="chLP"></div>
+    <div class="legend"><span><i style="background:var(--acc)"></i>인원 예보</span><span><i style="background:#e9a23b"></i>붐빌 때(상위 20%)</span><span><i style="background:var(--base)"></i>공연 정보를 뺀 같은 날(점선)</span></div>
+    <p class="muted">학습: 서울시 「행정동 단위 서울 생활인구(내국인)」 오륜동 2023-01~2026-07 시간대별(통신 기반 추계) + 공연 일정. 차·지하철로 오지 않는 사람(도보·버스·택시·공원 방문)까지 포함한 인파입니다.</p></div>
+  <div class="card" id="spdCard"><h2>도로 — 올림픽공원 둘레 32개 구간 평균 통행속도 (km/h)</h2><div class="chart" id="chSPD"></div>
+    <div class="legend"><span><i style="background:var(--pri)"></i>속도 예보</span><span><i style="background:#e9a23b"></i>막힐 때(하위 20%)</span><span><i style="background:var(--base)"></i>공연 정보를 뺀 같은 날(점선)</span></div>
+    <p class="muted">학습: 서울시 교통정보센터(TOPIS) 「월별 구간·시간별 통행속도」 중 강동대로·양재대로·위례성대로·올림픽로·백제고분로·성안로의 공원 접속 구간 2023-01~2026-10(거리 가중). 낮을수록 막힙니다.</p></div>
   <div class="card" id="simCard"><h2>대응 효과 계산 — 이렇게 하면 몰림이 얼마나 줄어드나</h2>
     <p class="muted">공연 때문에 늘어난 몫(예보 − 공연 정보를 뺀 같은 날)만 움직여 계산합니다. 시간 단위 자료라 ‘1시간 늦춤’ 단위로 계산합니다.</p>
     <div style="display:flex;gap:24px;flex-wrap:wrap;margin:8px 0">
@@ -200,7 +206,7 @@ function renderDay(){
    `<div class="kpi"><div class="t">차량 입차 몰림</div><div class="v">${pI.h}시 ${fmt(pI.v)}대</div><div class="s">${rtxt(pI.v,pI.b)} · 붐빌 때 ${fmt(pI.q)}대</div></div>`,
    `<div class="kpi"><div class="t">차량 출차 몰림</div><div class="v">${pO.h}시 ${fmt(pO.v)}대</div><div class="s">${rtxt(pO.v,pO.b)} · 붐빌 때 ${fmt(pO.q)}대</div></div>`,
    `<div class="kpi"><div class="t">${lbl} 지하철(9호선 2개 역)</div><div class="v">${l9.h}시 ${fmt(l9.v)}명</div><div class="s">${rtxt(l9.v,l9.b)} · 붐빌 때 ${fmt(l9.q)}명</div></div>`,
-   `<div class="kpi"><div class="t">${lbl} 지하철(5호선·8호선)</div><div class="v">${l58.h}시 ${fmt(l58.v)}명</div><div class="s">${rtxt(l58.v,l58.b)} · 붐빌 때 ${fmt(l58.q)}명</div></div>`].join('');
+   `<div class="kpi"><div class="t">${lbl} 지하철(5호선·8호선)</div><div class="v">${l58.h}시 ${fmt(l58.v)}명</div><div class="s">${rtxt(l58.v,l58.b)} · 붐빌 때 ${fmt(l58.q)}명</div></div>`].concat(x.lp?[(()=>{const p=peak(x.lp);return `<div class="kpi"><div class="t">공원 일대 인파(오륜동)</div><div class="v">${p.h}시 ${fmt(p.v)}명</div><div class="s">평소보다 +${fmt(Math.max(0,p.v-p.b))}명 · 붐빌 때 ${fmt(p.q)}명</div></div>`})()]:[]).concat(x.spd?[(()=>{let i=0;x.spd.mean.forEach((v,k)=>{if(v<x.spd.mean[i])i=k});return `<div class="kpi"><div class="t">둘레 도로 가장 느린 시각</div><div class="v">${H[i]}시 ${x.spd.mean[i].toFixed(1)}km/h</div><div class="s">평소 ${x.spd.base[i].toFixed(1)} · 막힐 때 ${x.spd.q80[i].toFixed(1)}km/h</div></div>`})()]:[]).join('');
   let t=[];
   if(big.length){
     const st=Math.min(...big.map(e=>e.start));
@@ -219,6 +225,8 @@ function renderDay(){
   $('#chPark').innerHTML=line([{v:x.pk_IN.base,c:'#b9c3d6',dash:1,wd:1.6},{v:x.pk_OUT.base,c:'#e9b4a6',dash:1,wd:1.6},{v:x.pk_OUT.q80,c:'#e9a23b',wd:1.4},{v:x.pk_IN.mean,c:'#1f4e9e'},{v:x.pk_OUT.mean,c:'#e4572e'}],{marks});
   $('#chL9').innerHTML=line([{v:x.l9_off.base,c:'#b9c3d6',dash:1,wd:1.6},{v:x.l9_on.base,c:'#e9b4a6',dash:1,wd:1.6},{v:x.l9_on.q80,c:'#e9a23b',wd:1.4},{v:x.l9_off.mean,c:'#1f4e9e'},{v:x.l9_on.mean,c:'#e4572e'}],{marks});
   $('#chL58').innerHTML=line([{v:x.l58_off.base,c:'#b9c3d6',dash:1,wd:1.6},{v:x.l58_on.base,c:'#e9b4a6',dash:1,wd:1.6},{v:x.l58_on.q80,c:'#e9a23b',wd:1.4},{v:x.l58_off.mean,c:'#1f4e9e'},{v:x.l58_on.mean,c:'#e4572e'}],{marks});
+  if(x.lp)$('#chLP').innerHTML=line([{v:x.lp.base,c:'#e9b4a6',dash:1,wd:1.6},{v:x.lp.q80,c:'#e9a23b',wd:1.4},{v:x.lp.mean,c:'#e4572e'}],{marks});else $('#lpCard').style.display='none';
+  if(x.spd)$('#chSPD').innerHTML=line([{v:x.spd.base,c:'#b9c3d6',dash:1,wd:1.6},{v:x.spd.q80,c:'#e9a23b',wd:1.4},{v:x.spd.mean,c:'#1f4e9e'}],{marks,ymax:Math.max(...x.spd.base,...x.spd.mean)*1.15});else $('#spdCard').style.display='none';
   weatherHint();sim();
 }
 function sim(){
@@ -254,10 +262,10 @@ async function weatherHint(){
 function renderOps(){
   const rows=SUM.days.filter(d=>d.peaks&&(d.events.some(e=>BIG.includes(e.cls))||d.dtype>=2));
   $('#opsNote').textContent=`${SUM.days.length}일 중 대형공연일·주말·휴일 ${rows.length}일. 만차 위험은 2025년 「주차장 혼잡도 정보」 만차 고지 기록의 같은 조건 비율로 정합니다(주말·휴일 대형공연일 59%, 평일 대형공연일 3%). 배수는 공연 정보를 뺀 같은 날 대비이며, 평소 값이 작은 시간은 배수를 표시하지 않습니다.`;
-  let h='<tr><th>날짜</th><th>공연</th><th>만차 위험</th><th>입차 피크</th><th>출차 피크</th><th>9호선 귀가 피크(붐빌 때)</th><th>5·8호선 귀가 피크</th></tr>';
+  let h='<tr><th>날짜</th><th>공연</th><th>만차 위험</th><th>입차 피크</th><th>출차 피크</th><th>9호선 귀가 피크(붐빌 때)</th><th>5·8호선 귀가 피크</th><th>공원 일대 인파 최대</th><th>둘레 도로 최저 속도</th></tr>';
   rows.forEach(day=>{const d=new Date(day.date+'T00:00:00');const [rt,rc]=risk(day);const P=day.peaks;const r=(o)=>{const x=ratio(o.v,o.base);return x===null?'':` · ${x.toFixed(1)}배`};
     const evs=[...new Map(day.events.filter(e=>BIG.includes(e.cls)).map(e=>[e.cls+e.start,e])).values()];
-    h+=`<tr><td>${d.getMonth()+1}/${d.getDate()}(${WD[d.getDay()]})</td><td>${evs.map(e=>`${CLS[e.cls]} ${hh(e.start)}`).join('<br>')||'<span class="muted">대형 공연 없음</span>'}</td><td><span class="badge ${rc}">${rt}</span></td><td>${P.pk_IN.h}시${r(P.pk_IN)}</td><td>${P.pk_OUT.h}시${r(P.pk_OUT)}</td><td>${P.l9_on.h}시 ${fmt(P.l9_on.v)}명(${fmt(P.l9_on.q)})${r(P.l9_on)}</td><td>${P.l58_on.h}시 ${fmt(P.l58_on.v)}명${r(P.l58_on)}</td></tr>`});
+    h+=`<tr><td>${d.getMonth()+1}/${d.getDate()}(${WD[d.getDay()]})</td><td>${evs.map(e=>`${CLS[e.cls]} ${hh(e.start)}`).join('<br>')||'<span class="muted">대형 공연 없음</span>'}</td><td><span class="badge ${rc}">${rt}</span></td><td>${P.pk_IN.h}시${r(P.pk_IN)}</td><td>${P.pk_OUT.h}시${r(P.pk_OUT)}</td><td>${P.l9_on.h}시 ${fmt(P.l9_on.v)}명(${fmt(P.l9_on.q)})${r(P.l9_on)}</td><td>${P.l58_on.h}시 ${fmt(P.l58_on.v)}명${r(P.l58_on)}</td><td>${P.lp?`${P.lp.h}시 ${fmt(P.lp.v)}명 (+${fmt(Math.max(0,P.lp.v-P.lp.base))})`:'-'}</td><td>${P.spd?`${P.spd.h}시 ${P.spd.v.toFixed(1)}km/h (평소 ${P.spd.base.toFixed(1)})`:'-'}</td></tr>`});
   $('#opsTbl').innerHTML=h;
 }
 async function liveFromLog(){
@@ -287,6 +295,9 @@ function renderValid(){
   h+=`<tr><td>5·8호선 귀가(승차)</td><td>2025.1~9 학습 → 10~12월 예측</td><td>${e.n_days}일</td><td>${p(e.mape_peak0)} → — → <b>${p(e.mape_peak)}</b></td><td>${p(e.peak_hour_exact)} (${p(e.peak_hour_pm1)})</td></tr>`;
   h+=`<tr><td>주차장 입차</td><td>2024-07, 같은 공연의 날들을 통째로 빼고 학습(4묶음)</td><td>9일</td><td>${p(c.mape_peak0)} → ${p(c.mape_peak_rule)} → <b>${p(c.mape_peak)}</b></td><td>—</td></tr>`;
   h+=`<tr><td>주차장 출차</td><td>같음</td><td>9일</td><td>${p(d.mape_peak0)} → ${p(d.mape_peak_rule)} → <b>${p(d.mape_peak)}</b></td><td>—</td></tr>`;
+  const lpm=m.lp_oryun,spm=m.spd_ring;
+  if(lpm)h+=`<tr><td>공원 일대 인파(오륜동 생활인구)</td><td>2023~2024 학습 → 2025.1~2026.7 예측</td><td>${lpm.n_days}일</td><td>${p(lpm.mape_peak0)} → — → <b>${p(lpm.mape_peak)}</b></td><td>${p(lpm.peak_hour_hit)} (${p(lpm.peak_hour_pm1)})</td></tr>`;
+  if(spm)h+=`<tr><td>둘레 도로 최저 속도(TOPIS 32개 구간)</td><td>2023~2024 학습 → 2025.1~2026.10 예측</td><td>${spm.n_days}일</td><td>${p(spm.min_mape0)} → — → <b>${p(spm.min_mape)}</b></td><td>— (${p(spm.minhour_pm1)})</td></tr>`;
   $('#metTbl').innerHTML=h+`<tr><td colspan="5" class="muted">주차장 ‘점유 대수’는 1개월 자료로 검증 기준을 넘지 못해 화면에서 뺐습니다(공연 묶음 빼기 오차율 57%). 예보는 대형공연일 피크를 낮게 잡는 경향이 있어(9호선 귀가 83일 중 76%) ‘붐빌 때(상위 20%)’ 값을 함께 보입니다 — 이 값의 최대치 오차율은 ${p(a.q_mape)}, 실측이 이 값 이하였던 날은 ${p(a.p80_cover)}로 아직 낮게 잡습니다.</td></tr>`;
   const l9k=Object.keys(V).filter(k=>k.startsWith('l9_')&&V[k].events);const pkk=Object.keys(V).filter(k=>k.startsWith('park_'));
   $('#valL9Sel').innerHTML=l9k.map((k,i)=>`<button data-k="${k}" class="${i?'':'on'}">${k.slice(3)}</button>`).join('');
