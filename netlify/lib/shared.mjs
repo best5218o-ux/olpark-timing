@@ -12,7 +12,7 @@ export async function getEvents(monthsBack = 1, monthsAhead = 4) {
     const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + k, 1));
     const ym = `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
     jobs.push(fetch(SRC, { method: 'POST', headers: { 'content-type': 'application/json;charset=UTF-8', 'user-agent': 'olpark-timing/1.0 (public data contest)' }, body: JSON.stringify({ nowYM: ym, plcCd: '' }) })
-      .then(r => r.json()).then(j => { live++; for (const part of j) for (const e of part) { delete e.content; byId.set(e.evtSeq, e); } }).catch(() => { fail++; }));
+      .then(r => r.json()).then(j => { live++; for (const part of j) for (const e of part) { delete e.content; delete e.nqry; delete e.regIp; delete e.regId; byId.set(e.evtSeq, e); } }).catch(() => { fail++; }));
   }
   await Promise.all(jobs);
   return { events: [...byId.values()], liveMonths: live, failedMonths: fail, fetchedAt: now.toISOString().slice(0, 16) };

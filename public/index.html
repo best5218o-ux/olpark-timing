@@ -117,7 +117,7 @@ a{color:var(--pri)}
     <tr><td>시간 해상도</td><td>30분 단위 표지만 공연일 저녁 내내 같은 값(예: 11/21 17:00~21:00 모두 89%)</td><td>시간대마다 다른 값 — 도착 몰림·퇴장 몰림을 구분, ‘붐빌 때(상위 20%)’ 값도 함께</td></tr>
     <tr><td>근거 공개</td><td>“실제와 차이가 있을 수 있음” 안내만</td><td>학습에 쓰지 않은 기간으로 잰 오차를 공개(검증 탭)</td></tr>
     <tr><td>행동 안내</td><td>없음</td><td>도착 권장 시각·퇴장 시차·덜 붐비는 역과 출구·주차장(가까운 곳과 넓은 곳)</td></tr>
-    <tr><td>갱신</td><td>—</td><td>기관 누리집 공연 일정을 3시간마다 자동으로 받아 60일 예보 생성·배포(GitHub Actions), 누리집 주차 표시값 기록</td></tr></table>
+    <tr><td>갱신</td><td>—</td><td>기관 누리집 공연 일정을 자동으로 받아 60일 예보 생성·배포(GitHub Actions 매시간 예약, 예약 실행이 밀려 실제 갱신은 하루 몇 차례), 누리집 주차 표시값 기록</td></tr></table>
     <p class="muted">현행 화면: https://www.ksponco.or.kr/online/main/parking.do (2026-11-16·17 열람)</p></div>
   <div class="card"><h2>운영 활용 — 예보를 업무로 옮기는 기준(제안)</h2>
     <table><tr><th>예보 신호</th><th>현장 조치(예)</th></tr>
@@ -146,12 +146,12 @@ a{color:var(--pri)}
     <tr><td>입출차(2024-07, 215,528건)와 월별주차현황(같은 달 59,808대)의 집계 기준이 다름</td><td>10분 이내 출차(무료) 31.4%</td><td>집계 범위(출입문·무료 출차 포함 여부) 명세</td></tr>
     <tr><td>공연정보의 공연시간이 자유 서술</td><td>“금 오후 8시 / 토 오후 6시 / 일 오후 4시” 등 — 규칙 파서로 회차 3,967개로 풀어 씀</td><td>회차(날짜·시작시각) 단위 칸 추가</td></tr>
     <tr><td>공연정보에 관객 규모 칸 없음</td><td>최고 티켓가·공연장·회차 수를 규모 대리지표로 사용. 동시 공연이 겹친 날 오차가 큼</td><td>공연장별 판매석 규모(등급) 개방 검토</td></tr></table></div></div>
-  <div class="card"><h2>인증키 연결 후 바로 붙는 것</h2>
-    <p>오픈API(입출차 전체구역 2025, 차량입출차·공연·날씨 연계 2025, 실시간 주차현황, 대관정보, 운영현황)는 공공데이터포털에서 문화데이터광장(api.kcisa.kr)으로 연결되는 방식이라 그쪽 인증키가 필요합니다. 키를 서버 함수 환경변수에 넣으면 ① 주차 모델을 1개월→1년으로 다시 학습하고 ② 주차구역(P1A~P11)별 예보와 ③ 실시간 대수로 당일 예보 보정을 붙입니다.</p></div>
+  <div class="card"><h2>오픈API 연결 상황과 다음 단계</h2>
+    <p>기관 오픈API는 문화데이터광장(api.kcisa.kr) 인증키로 호출합니다. 2026-11-18 키를 받아 2025 연계 데이터(7,803시간)와 2025 입출차정보(2,411,225건 중 79만 건 수신)를 연결·검증했습니다. 입출차 전량을 받으면 ① 주차 모델을 1개월→1년으로 다시 학습하고 ② 주차구역(P1A~P11)별 예보를 붙입니다. 실시간 주차현황·대관정보·운영현황은 연결 예정입니다(실시간 값은 지금 누리집 공개값을 기록).</p></div>
 </section>
 </main>
 <footer>
-  자료: 한국체육산업개발(주) 개방 공공데이터(공공데이터포털)·올림픽공원 누리집 공개 정보, 서울교통공사 역별 시간대별 승하차인원(공공데이터포털), 기상 Open-Meteo(CC BY 4.0, ERA5·예보). 예보는 참고용이며 실제 상황과 다를 수 있습니다.<br>
+  자료: 한국체육산업개발(주) 개방 공공데이터(공공데이터포털)·올림픽공원 누리집 공개 정보, 서울교통공사 역별 시간대별 승하차인원(공공데이터포털), 서울특별시 행정동 단위 서울 생활인구(OA-14991)·차량통행속도(TOPIS)(서울 열린데이터광장·서울시 교통정보센터, 공공누리 출처표시), 기상 Open-Meteo(CC BY 4.0, ERA5·예보). 예보는 참고용이며 실제 상황과 다를 수 있습니다.<br>
   제작: 브랜드 AI · 2026 한국체육산업개발 공공데이터 활용 경진대회 출품작 · <span id="gen"></span>
 </footer>
 <script>
@@ -197,10 +197,10 @@ async function loadDay(){$('#dayTitle').textContent='예보 계산 중…';try{D
 function renderDay(){
   const day=DAY,x=day.series[sc],d=new Date(cur+'T00:00:00');const [rt,rc,rnote]=risk(day);
   const big=day.events.filter(e=>BIG.includes(e.cls));const le=bigEnd(day);const fi=le?Math.max(0,Math.floor(le)-6-1):0;
-  $('#dayTitle').innerHTML=`${d.getMonth()+1}월 ${d.getDate()}일(${WD[d.getDay()]}) ${day.holiday?'<span class="tag">휴일</span>':''} <span class="badge ${rc}">만차 위험 ${rt}</span> <span class="muted">${rnote}</span>`;
+  $('#dayTitle').innerHTML=`${d.getMonth()+1}월 ${d.getDate()}일(${WD[d.getDay()]}) ${day.holiday?'<span class="tag">휴일</span>':''} <span class="badge ${rc}">만차 위험 ${rt}</span> <span class="muted">${rnote}</span>`+(day.archived||cur<SUM.days[0].date?' <span class="tag">지난 날짜 — 보관해 둔 예보</span>':'');
   const evs=[];const seen=new Set();day.events.forEach(e=>{const k=e.title+e.start;if(!seen.has(k)){seen.add(k);evs.push(e)}});
   $('#evList').innerHTML=evs.length?evs.map(e=>`<div class="ev"><span class="tag">${CLS[e.cls]||e.cls}</span><div><b>${e.link?`<a href="${e.link}" target="_blank" rel="noopener">${e.title}</a>`:e.title}</b><div class="muted">${hh(e.start)} 시작 · 종료 예상 ${hh(e.end)}${e.imputed?' · 공연 시각이 비어 있어 기본값 사용':''}</div></div></div>`).join(''):'<div class="muted">이날 등록된 공연이 없습니다 — 평소 흐름 예보입니다.</div>';
-  const pI=peak(x.pk_IN),pO=peak(x.pk_OUT,fi),l9=peak(x.l9_on,fi),l58=peak(x.l58_on,fi);
+  const fs0=big.length?Math.max(0,Math.floor(Math.min(...big.map(e=>e.start)))-6-6):0;const pI=peak(x.pk_IN,fs0),pO=peak(x.pk_OUT,fi),l9=peak(x.l9_on,fi),l58=peak(x.l58_on,fi);
   const lbl=big.length?'귀가':'승차 최대';
   $('#kpis').innerHTML=[
    `<div class="kpi"><div class="t">차량 입차 몰림</div><div class="v">${pI.h}시 ${fmt(pI.v)}대</div><div class="s">${rtxt(pI.v,pI.b)} · 붐빌 때 ${fmt(pI.q)}대</div></div>`,
@@ -270,7 +270,7 @@ function renderOps(){
 }
 async function liveFromLog(){
   try{const pts=await (await fetch('data/live_log.json')).json();const l=pts[pts.length-1];
-    $('#liveParking').innerHTML=`누리집 주차 표시값 <b>${fmt(l[1])}</b> / ${fmt(l[2])}대 <span class="ver">${l[0].slice(5,10).replace('-','/')} ${l[0].slice(11,16)} 기록 · 3시간마다 갱신</span>`;
+    $('#liveParking').innerHTML=`누리집 주차 표시값 <b>${fmt(l[1])}</b> / ${fmt(l[2])}대 <span class="ver">${l[0].slice(5,10).replace('-','/')} ${l[0].slice(11,16)} 기록 · 예보를 갱신할 때 함께 기록</span>`;
   }catch(e){$('#liveParking').textContent='실시간 주차: 연결 대기'}
 }
 async function renderLive(){
@@ -283,7 +283,7 @@ async function renderLive(){
     $('#chLive').innerHTML=g;
     const night=pts.filter(p=>{const hr=+p[0].slice(11,13);return hr>=0&&hr<=5}).map(p=>p[1]);
     const day=pts.filter(p=>{const hr=+p[0].slice(11,13);return hr>=11&&hr<=16}).map(p=>p[1]);
-    $('#liveNote').textContent=`기록 ${pts.length}점(${pts[0][0].replace('T',' ')} ~ ${pts[pts.length-1][0].replace('T',' ')}). 새벽(0~5시) 최솟값 ${night.length?fmt(Math.min(...night))+'대':'기록 대기'} · 낮(11~16시) 최댓값 ${day.length?fmt(Math.max(...day))+'대':'기록 대기'} — 공원이 닫힌 새벽에도 남는 몫(장기·월주차·미출차 추정)으로, 기관 이용률 표시가 실제보다 높게 보일 수 있는 크기입니다.`;
+    $('#liveNote').textContent=`기록 ${pts.length}점(${pts[0][0].replace('T',' ')} ~ ${pts[pts.length-1][0].replace('T',' ')}). 새벽(0~5시) 최솟값 ${night.length?fmt(Math.min(...night))+'대':'기록 대기'} · 낮(11~16시) 최댓값 ${day.length?fmt(Math.max(...day))+'대':'기록 대기'} — 공원이 닫힌 새벽에도 남는 몫(장기·월주차·미출차 추정)으로, 기관 이용률 표시가 실제보다 높게 보일 수 있는 크기입니다.`+(()=>{const ov=pts.filter(p=>p[1]>p[2]);return ov.length?` 표시값이 총 면수를 넘은 기록 ${ov.length}점(최대 ${fmt(Math.max(...ov.map(p=>p[1])))}대)은 기관 화면 값을 그대로 둡니다 — 집계 범위 확인이 필요한 부분입니다.`:''})();
   }catch(e){$('#liveNote').textContent='기록을 불러오지 못했습니다.'}
 }
 function renderValid(){
@@ -331,7 +331,7 @@ document.querySelectorAll('#wx button').forEach(b=>b.onclick=()=>{document.query
   $('#ver').textContent='예보 갱신 '+SUM.meta.built.replace('T',' ');$('#gen').textContent='판 v3 · 모델 '+SUM.meta.model.slice(0,10);
   const td=SUM.days[0];$('#todayEv').textContent=td.events.length?'오늘: '+[...new Set(td.events.map(e=>CLS[e.cls]+' '+hh(e.start)))].join(', '):'오늘: 등록된 공연 없음';
   const q=new URLSearchParams(location.search).get('d');
-  cur=(q&&SUM.days.find(d=>d.date===q))?q:(SUM.days.find(d=>d.events.some(e=>BIG.includes(e.cls)))||SUM.days[0]).date;
+  cur=(q&&(SUM.days.find(d=>d.date===q)||(/^\d{4}-\d{2}-\d{2}$/.test(q)&&q<now)))?q:(SUM.days.find(d=>d.events.some(e=>BIG.includes(e.cls)))||SUM.days[0]).date;
   renderDates();renderOps();loadDay();
 })();
 </script>
