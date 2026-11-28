@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>올팍 타이밍 — 공연 날 올림픽공원 도착·퇴장 시간 예보</title>
-<meta name="description" content="한국체육산업개발 공공데이터(공연정보·입출차·주차장 혼잡도·월별주차)와 지하철 승하차 기록으로 공연 날 올림픽공원의 시간대별 차량·지하철 몰림을 예보합니다.">
+<meta name="description" content="한국체육산업개발 공공데이터(공연정보·입출차·주차장 혼잡도·월별주차)와 지하철 승하차 기록으로 공연 날 올림픽공원의 시간대별 차량·지하철 혼잡을 예보합니다.">
 <style>
 :root{--ink:#14213d;--sub:#5b6478;--line:#dfe3ea;--bg:#f6f7fb;--card:#fff;--pri:#1f4e9e;--pri2:#e4ecfa;--acc:#e4572e;--ok:#2a9d8f;--warn:#e9a23b;--bad:#d1495b;--base:#9aa3b5}
 *{box-sizing:border-box}body{margin:0;font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.55}
@@ -145,7 +145,11 @@ a{color:var(--pri)}
     <tr><td>입출차 파일 완전 중복 21,895행(10.2%)</td><td>같은 입차·출차 일시가 겹치는 행. 10분 이내 출차의 44%</td><td>이중 기록인지 확인·명세</td></tr>
     <tr><td>입출차(2024-07, 215,528건)와 월별주차현황(같은 달 59,808대)의 집계 기준이 다름</td><td>10분 이내 출차(무료) 31.4%</td><td>집계 범위(출입문·무료 출차 포함 여부) 명세</td></tr>
     <tr><td>공연정보의 공연시간이 자유 서술</td><td>“금 오후 8시 / 토 오후 6시 / 일 오후 4시” 등 — 규칙 파서로 회차 3,967개로 풀어 씀</td><td>회차(날짜·시작시각) 단위 칸 추가</td></tr>
-    <tr><td>공연정보에 관객 규모 칸 없음</td><td>최고 티켓가·공연장·회차 수를 규모 대리지표로 사용. 동시 공연이 겹친 날 오차가 큼</td><td>공연장별 판매석 규모(등급) 개방 검토</td></tr></table></div></div>
+    <tr><td>공연정보에 관객 규모 칸 없음</td><td>최고 티켓가·공연장·회차 수를 규모 대리지표로 사용. 동시 공연이 겹친 날 오차가 큼</td><td>공연장별 판매석 규모(등급) 개방 검토</td></tr>
+    <tr><td>2025 연계 데이터의 공연관람객수: 관객이 많은 날일수록 9호선 귀가가 예보보다 많음</td><td>실측÷예보: 관객 하위 25% 날 1.21배 → 상위 25% 1.48배. 관객 수 반영 시 귀가 피크 오차 33.8%→31.8%(사후값이라 효과가 작게 나옴)</td><td>관객 수(예매 수)를 공연 전에 회차별로 개방</td></tr>
+    <tr><td>연계 데이터 주차대수 값 이상</td><td>8~9월 값이 다른 달의 약 1/4, 11~12월은 시간 결측과 1씩 줄어드는 값 반복</td><td>수집 오류 점검·재적재</td></tr>
+    <tr><td>입출차정보 API 호출 제약</td><td>1회 1만 건·5초 1회 제한, 85만 건 이후 응답 시간 초과, 같은 페이지 중복 반환 6회</td><td>날짜 조회 인자 또는 연간 파일 개방</td></tr>
+    <tr><td>카드 매출이 분기·행정동 단위로만 개방됨</td><td>상권분석서비스 추정매출 — 분기 공연일 수와 오륜동 매출 비중 상관 0.10</td><td>공연일 지역 소비를 일·시간 단위로 집계해 개방</td></tr></table></div></div>
   <div class="card"><h2>오픈API 연결 상황과 다음 단계</h2>
     <p>기관 오픈API는 문화데이터광장(api.kcisa.kr) 인증키로 호출합니다. 2026-11-18 키를 받아 2025 연계 데이터(7,803시간)와 2025 입출차정보(2,411,225건 중 79만 건 수신)를 연결·검증했습니다. 입출차 전량을 받으면 ① 주차 모델을 1개월→1년으로 다시 학습하고 ② 주차구역(P1A~P11)별 예보를 붙입니다. 실시간 주차현황·대관정보·운영현황은 연결 예정입니다(실시간 값은 지금 누리집 공개값을 기록).</p></div>
 </section>
@@ -261,7 +265,7 @@ async function weatherHint(){
 }
 function renderOps(){
   const rows=SUM.days.filter(d=>d.peaks&&(d.events.some(e=>BIG.includes(e.cls))||d.dtype>=2));
-  $('#opsNote').textContent=`${SUM.days.length}일 중 대형공연일·주말·휴일 ${rows.length}일. 만차 위험은 2025년 「주차장 혼잡도 정보」 만차 고지 기록의 같은 조건 비율로 정합니다(주말·휴일 대형공연일 59%, 평일 대형공연일 3%). 배수는 공연 정보를 뺀 같은 날 대비이며, 평소 값이 작은 시간은 배수를 표시하지 않습니다.`;
+  $('#opsNote').textContent=`${SUM.days.length}일 중 대형공연일 ${rows.length}일. 만차 위험은 2025-02-12~12-31 「주차장 혼잡도 정보」 만차 고지 기록의 같은 조건 비율로 정합니다(주말·휴일 대형공연일 59%, 평일 대형공연일 3%). 배수는 평시 기준(같은 모델에서 공연 정보만 비운 값) 대비이며, 평소 값이 작은 시간은 배수를 표시하지 않습니다.`;
   let h='<tr><th>날짜</th><th>공연</th><th>만차 위험</th><th>입차 피크</th><th>출차 피크</th><th>9호선 귀가 피크(혼잡 시나리오)</th><th>5·8호선 귀가 피크</th><th>공원 일대 인파 최대</th><th>둘레 도로 최저 속도</th></tr>';
   rows.forEach(day=>{const d=new Date(day.date+'T00:00:00');const [rt,rc]=risk(day);const P=day.peaks;const r=(o)=>{const x=ratio(o.v,o.base);return x===null?'':` · ${x.toFixed(1)}배`};
     const evs=[...new Map(day.events.filter(e=>BIG.includes(e.cls)).map(e=>[e.cls+e.start,e])).values()];
