@@ -131,7 +131,7 @@ a{color:var(--pri)}
     <p class="muted">‘공연 정보 없이’는 공연 변수를 제외하고 따로 학습한 모델, ‘단순 규칙’은 과거 대형공연일의 같은 요일군·시각 평균입니다. 오차율은 대형공연일 그날 최대치 기준입니다.</p>
     <div class="chart"><table id="metTbl"></table></div></div>
   <div class="card"><h2>사례 ① 2026년 9호선 귀가 승차 — 2025년까지만 학습하고 2026년을 예측</h2><div id="valL9Sel" class="seg" style="margin-bottom:8px"></div><div class="chart" id="chVL9"></div>
-    <div class="legend"><span><i style="background:#111"></i>실측</span><span><i style="background:var(--acc)"></i>공연 반영 예보</span><span><i style="background:#e9a23b"></i>혼잡 시나리오(상위 20%)</span><span><i style="background:var(--base)"></i>공연 정보 없이 학습한 예보(점선)</span></div></div>
+    <div class="legend"><span><i style="background:#111"></i>실측</span><span><i style="background:var(--acc)"></i>공연 반영 예보</span><span><i style="background:#e9a23b"></i>혼잡 시나리오(실측 보정)</span><span><i style="background:var(--base)"></i>공연 정보 없이 학습한 예보(점선)</span></div></div>
   <div class="card"><h2>사례 ② 2024-07 공연일 차량 입차·출차 — 같은 공연의 공연일을 모두 제외하고 학습한 뒤 예측</h2><div id="valPkSel" class="seg" style="margin-bottom:8px"></div><div class="chart" id="chVPk"></div>
     <div class="legend"><span><i style="background:#111"></i>실측 입차</span><span><i style="background:var(--pri)"></i>입차 예보</span><span><i style="background:#555"></i>실측 출차(가는 선)</span><span><i style="background:var(--acc)"></i>출차 예보</span></div></div>
 </section>
@@ -179,8 +179,8 @@ function line(series,{w=1000,h=260,ymax=null,marks=[]}={}){
   return g+'</svg>';
 }
 function risk(day){const big=day.events.some(e=>BIG.includes(e.cls));
-  if(big&&day.dtype>=2)return['높음','b-hi','2025년 같은 조건(주말·휴일 대형공연일) 96일 중 57일 만차 고지'];
-  if(big)return['주의','b-mid','2025년 평일 대형공연일 37일 중 만차 고지 1일·혼잡 이상 3일'];
+  if(big&&day.dtype>=2)return['높음','b-hi','2025-02-12~12-31 같은 조건(주말·휴일 대형공연일) 96일 중 57일 만차 고지'];
+  if(big)return['주의','b-mid','2025-02-12~12-31 평일 대형공연일 37일 중 만차 고지 1일·혼잡 이상 3일'];
   return['보통','b-lo','2025년 대형공연이 없는 날 190일 중 만차 고지 1일'];}
 function peak(s,from=0){let i=from;for(let k=from;k<18;k++)if(s.mean[k]>s.mean[i])i=k;return {i,h:H[i],v:s.mean[i],q:s.q80[i],b:s.base[i]}}
 function bigEnd(day){const b=day.events.filter(e=>BIG.includes(e.cls));return b.length?Math.min(...b.map(e=>e.end)):null}
@@ -220,7 +220,7 @@ function renderDay(){
   if(sc==='rain'){const c=DAY.series.clear.l9_on.mean,r=x.l9_on.mean;const a=Math.max(...c),b=Math.max(...r);t.push(`<b>비</b> — 저녁 비를 가정하면 9호선 승차 최대치가 ${fmt(a)}명 → ${fmt(b)}명으로 예보됩니다.`)}
   $('#tips').innerHTML=t.map(s=>'<div style="margin:4px 0">• '+s+'</div>').join('');
   const vs=[...new Set(big.map(e=>e.cls))].filter(c=>S.venues[c]);
-  $('#venueBox').innerHTML=vs.length?'<table><tr><th>공연장</th><th>가장 가까운 주차장</th><th>넓은 주차장</th><th>출입문</th><th>지하철</th></tr>'+vs.map(c=>{const v=S.venues[c];return `<tr><td>${v.name}</td><td>${v.lot}${v.lot_cap?` (${v.lot_cap}대, 도보 ${v.walk})`:''}</td><td>P1 (562대, 도보 3~4분)</td><td>${v.gates}</td><td>${v.station}</td></tr>`}).join('')+'</table><p class="muted">'+S.source+'</p>':'';
+  $('#venueBox').innerHTML=vs.length?'<table><tr><th>공연장</th><th>가장 가까운 주차장</th><th>넓은 주차장</th><th>출입문</th><th>지하철</th></tr>'+vs.map(c=>{const v=S.venues[c];return `<tr><td>${v.name}</td><td>${v.lot}${v.lot_cap?` (${v.lot_cap}면, 도보 ${v.walk})`:''}</td><td>P1 (562면, 도보 3~4분)</td><td>${v.gates}</td><td>${v.station}</td></tr>`}).join('')+'</table><p class="muted">'+S.source+'</p>':'';
   const marks=big.length?[{x:Math.min(...big.map(e=>e.start)),t:'시작'},{x:le,t:'종료',c:'#e4572e'}]:[];
   $('#chPark').innerHTML=line([{v:x.pk_IN.base,c:'#b9c3d6',dash:1,wd:1.6},{v:x.pk_OUT.base,c:'#e9b4a6',dash:1,wd:1.6},{v:x.pk_IN.mean,c:'#1f4e9e'},{v:x.pk_OUT.mean,c:'#e4572e'}],{marks});
   $('#chL9').innerHTML=line([{v:x.l9_off.base,c:'#b9c3d6',dash:1,wd:1.6},{v:x.l9_on.base,c:'#e9b4a6',dash:1,wd:1.6},{v:x.l9_on.q80,c:'#e9a23b',wd:1.4},{v:x.l9_off.mean,c:'#1f4e9e'},{v:x.l9_on.mean,c:'#e4572e'}],{marks});
@@ -303,7 +303,7 @@ function renderValid(){
   $('#valL9Sel').innerHTML=l9k.map((k,i)=>`<button data-k="${k}" class="${i?'':'on'}">${k.slice(3)}</button>`).join('');
   $('#valPkSel').innerHTML=pkk.map((k,i)=>`<button data-k="${k}" class="${i?'':'on'}">${k.slice(5)}</button>`).join('');
   const evtxt=x=>x.events.map(e=>e[0]+' '+hh(e[1])+(e[3]?'(시각 미기재·기본값)':'')).join(' / ');
-  const dl9=k=>{const x=V[k];$('#chVL9').innerHTML=line([{v:x['순승차_p0'],c:'#b9c3d6',dash:1,wd:1.6},{v:x['순승차_q'],c:'#e9a23b',wd:1.4},{v:x['순승차_p'],c:'#e4572e'},{v:x['순승차'],c:'#111',wd:2,pts:1}],{})+`<p class="muted">공연: ${evtxt(x)}</p>`};
+  const dl9=k=>{const x=V[k];$('#chVL9').innerHTML=line([{v:x['순승차_p0'],c:'#b9c3d6',dash:1,wd:1.6},{v:x['순승차_q'].map(v=>Math.round(v*((V.metrics.calib_l9&&V.metrics.calib_l9.k)||1))),c:'#e9a23b',wd:1.4},{v:x['순승차_p'],c:'#e4572e'},{v:x['순승차'],c:'#111',wd:2,pts:1}],{})+`<p class="muted">공연: ${evtxt(x)}</p>`};
   const dpk=k=>{const x=V[k];$('#chVPk').innerHTML=line([{v:x.IN,c:'#111',wd:2,pts:1},{v:x.IN_s,c:'#1f4e9e'},{v:x.OUT,c:'#555',wd:1.2,pts:1},{v:x.OUT_s,c:'#e4572e'}],{})+`<p class="muted">공연: ${evtxt(x)}</p>`};
   document.querySelectorAll('#valL9Sel button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#valL9Sel button').forEach(x=>x.classList.remove('on'));b.classList.add('on');dl9(b.dataset.k)});
   document.querySelectorAll('#valPkSel button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#valPkSel button').forEach(x=>x.classList.remove('on'));b.classList.add('on');dpk(b.dataset.k)});
