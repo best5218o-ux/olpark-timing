@@ -166,7 +166,7 @@ export function forecastDay(model, events, dstr, rainMm) {
     const s = usem ? 1 : meta.seasonal[String(D(dstr).getUTCMonth() + 1)];
     const mean = [], base = [], q80 = [];
     for (const f of F) {
-      const p = predict(model[k].mean, f), p0 = predict(model[k].mean, strip(f)), q = predict(model[k].q80, f);
+      const p = predict(model[k].mean, f), p0 = predict(model[k].mean, strip(f)), q = predict(model[k].q80, f) * ((meta.calib && meta.calib[k]) || 1); // 9호선 귀가 혼잡 시나리오는 2025년 실측으로 보정(포함률 80% 목표)
       const adj = usem ? 0 : p0 * s - p0; // 주차: 평소 몫만 계절 보정
       if (k === 'spd') { const mv = Math.round(p * 10) / 10; mean.push(mv); base.push(Math.round(p0 * 10) / 10); q80.push(Math.min(mv, Math.round(q * 10) / 10)); continue; } // 속도: '막힐 때'(하위 20%) 값은 예보보다 빠르게 두지 않는다
       const mv = Math.max(0, Math.round(p + adj)); mean.push(mv); base.push(Math.max(0, Math.round(p0 + adj))); q80.push(Math.max(mv, Math.round(q + adj))); // 붐빌 때 값은 예보보다 작게 두지 않는다
