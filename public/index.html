@@ -54,7 +54,7 @@ a{color:var(--pri)}
 <body>
 <header><div class="wrap">
   <h1>올팍 타이밍 <small>공연 날 올림픽공원, 언제 도착하고 언제 나설까</small></h1>
-  <p>한국체육산업개발 공공데이터(공연정보·입출차·주차장 혼잡도·월별주차)와 지하철 승하차 기록을 결합해, 공연 날의 <b>시간대별 차량·지하철 몰림</b>을 공연별로 예보합니다. 공연 일정은 기관 누리집에서 자동으로 받아 오므로 새 공연이 올라오면 예보도 바로 생깁니다.</p>
+  <p>한국체육산업개발 공공데이터(공연정보·입출차·주차장 혼잡도·월별주차)와 지하철 승하차 기록을 결합해, 공연 날의 <b>시간대별 차량·지하철 혼잡</b>을 공연별로 예보합니다. 공연 일정은 기관 누리집에서 자동으로 받아 오므로 새 공연이 올라오면 예보도 바로 생깁니다.</p>
   <div class="live">
     <span class="pill" id="liveParking">실시간 주차 확인 중…</span>
     <span class="pill" id="todayEv">오늘 공연 확인 중…</span>
@@ -84,19 +84,19 @@ a{color:var(--pri)}
   </div>
   <div class="card"><h2>이렇게 움직이세요</h2><div id="tips" class="tip"></div><div id="venueBox" style="margin-top:12px"></div></div>
   <div class="card"><h2>차량 — 올림픽공원 주차장 입차·출차 (대/시간)</h2><div class="chart" id="chPark"></div>
-    <div class="legend"><span><i style="background:var(--pri)"></i>입차 예보</span><span><i style="background:var(--acc)"></i>출차 예보</span><span><i style="background:#e9a23b"></i>붐빌 때(상위 20%) 출차</span><span><i style="background:var(--base)"></i>공연 정보를 뺀 같은 날(점선)</span></div>
+    <div class="legend"><span><i style="background:var(--pri)"></i>입차 예보</span><span><i style="background:var(--acc)"></i>출차 예보</span><span><i style="background:#e9a23b"></i>혼잡 시나리오(상위 20%) 출차</span><span><i style="background:var(--base)"></i>평시 기준 — 공연 정보 제외(점선)</span></div>
     <p class="muted">학습: 올림픽공원 입출차 정보 2024년 7월 215,528건 + 공연 일정(월별주차현황으로 계절 보정). 기관 오픈API(2025년 입출차 전체구역·연계 데이터)를 받으면 1년치·주차구역별로 다시 학습합니다.</p></div>
   <div class="card"><h2>지하철 — 9호선 올림픽공원·한성백제역 (명/시간)</h2><div class="chart" id="chL9"></div>
-    <div class="legend"><span><i style="background:var(--pri)"></i>하차(도착)</span><span><i style="background:var(--acc)"></i>승차(귀가)</span><span><i style="background:#e9a23b"></i>붐빌 때(상위 20%) 승차</span><span><i style="background:var(--base)"></i>공연 정보를 뺀 같은 날(점선)</span></div></div>
+    <div class="legend"><span><i style="background:var(--pri)"></i>하차(도착)</span><span><i style="background:var(--acc)"></i>승차(귀가)</span><span><i style="background:#e9a23b"></i>혼잡 시나리오(상위 20%) 승차</span><span><i style="background:var(--base)"></i>평시 기준 — 공연 정보 제외(점선)</span></div></div>
   <div class="card"><h2>지하철 — 5호선 올림픽공원·8호선 몽촌토성역 (명/시간)</h2><div class="chart" id="chL58"></div>
-    <div class="legend"><span><i style="background:var(--pri)"></i>하차(도착)</span><span><i style="background:var(--acc)"></i>승차(귀가)</span><span><i style="background:#e9a23b"></i>붐빌 때(상위 20%) 승차</span><span><i style="background:var(--base)"></i>공연 정보를 뺀 같은 날(점선)</span></div></div>
+    <div class="legend"><span><i style="background:var(--pri)"></i>하차(도착)</span><span><i style="background:var(--acc)"></i>승차(귀가)</span><span><i style="background:#e9a23b"></i>혼잡 시나리오(상위 20%) 승차</span><span><i style="background:var(--base)"></i>평시 기준 — 공연 정보 제외(점선)</span></div></div>
   <div class="card" id="lpCard"><h2>사람 — 올림픽공원 일대(오륜동) 머무는 인원 (명/시간)</h2><div class="chart" id="chLP"></div>
-    <div class="legend"><span><i style="background:var(--acc)"></i>인원 예보</span><span><i style="background:#e9a23b"></i>붐빌 때(상위 20%)</span><span><i style="background:var(--base)"></i>공연 정보를 뺀 같은 날(점선)</span></div>
+    <div class="legend"><span><i style="background:var(--acc)"></i>인원 예보</span><span><i style="background:#e9a23b"></i>혼잡 시나리오(상위 20%)</span><span><i style="background:var(--base)"></i>평시 기준 — 공연 정보 제외(점선)</span></div>
     <p class="muted">학습: 서울시 「행정동 단위 서울 생활인구(내국인)」 오륜동 2023-01~2026-07 시간대별(통신 기반 추계) + 공연 일정. 차·지하철로 오지 않는 사람(도보·버스·택시·공원 방문)까지 포함한 인파입니다.</p></div>
   <div class="card" id="spdCard"><h2>도로 — 올림픽공원 둘레 32개 구간 평균 통행속도 (km/h)</h2><div class="chart" id="chSPD"></div>
-    <div class="legend"><span><i style="background:var(--pri)"></i>속도 예보</span><span><i style="background:#e9a23b"></i>막힐 때(하위 20%)</span><span><i style="background:var(--base)"></i>공연 정보를 뺀 같은 날(점선)</span></div>
+    <div class="legend"><span><i style="background:var(--pri)"></i>속도 예보</span><span><i style="background:#e9a23b"></i>막힐 때(하위 20%)</span><span><i style="background:var(--base)"></i>평시 기준 — 공연 정보 제외(점선)</span></div>
     <p class="muted">학습: 서울시 교통정보센터(TOPIS) 「월별 구간·시간별 통행속도」 중 강동대로·양재대로·위례성대로·올림픽로·백제고분로·성안로의 공원 접속 구간 2023-01~2026-10(거리 가중). 낮을수록 막힙니다.</p></div>
-  <div class="card" id="simCard"><h2>대응 효과 계산 — 이렇게 하면 몰림이 얼마나 줄어드나</h2>
+  <div class="card" id="simCard"><h2>대응 효과 계산 — 이렇게 하면 혼잡이 얼마나 줄어드나</h2>
     <p class="muted">공연 때문에 늘어난 몫(예보 − 공연 정보를 뺀 같은 날)만 움직여 계산합니다. 시간 단위 자료라 ‘1시간 늦춤’ 단위로 계산합니다.</p>
     <div style="display:flex;gap:24px;flex-wrap:wrap;margin:8px 0">
       <label>종료 후 1시간 늦게 움직이는 비율 <b id="pv">30</b>%<br><input type="range" id="p" min="0" max="80" step="5" value="30" style="width:240px"></label>
@@ -114,7 +114,7 @@ a{color:var(--pri)}
   <div class="card"><h2>현행 「주차장 예상 이용률 서비스」와 무엇이 다른가</h2>
     <table><tr><th>구분</th><th>현행(올림픽공원 온라인예약 화면)</th><th>올팍 타이밍</th></tr>
     <tr><td>제공 범위</td><td>주말(토·일)만, 동2·남2·북2문 합계</td><td>평일 포함 모든 날, 차량 입차·출차 + 지하철 4개 역 하차·승차</td></tr>
-    <tr><td>시간 해상도</td><td>30분 단위 표지만 공연일 저녁 내내 같은 값(예: 11/21 17:00~21:00 모두 89%)</td><td>시간대마다 다른 값 — 도착 몰림·퇴장 몰림을 구분, ‘붐빌 때(상위 20%)’ 값도 함께</td></tr>
+    <tr><td>시간 해상도</td><td>30분 단위 표지만 공연일 저녁 내내 같은 값(예: 11/21 17:00~21:00 모두 89%)</td><td>시간대마다 다른 값 — 도착 혼잡·퇴장 혼잡을 구분, ‘혼잡 시나리오(상위 20%)’ 값도 함께</td></tr>
     <tr><td>근거 공개</td><td>“실제와 차이가 있을 수 있음” 안내만</td><td>학습에 쓰지 않은 기간으로 잰 오차를 공개(검증 탭)</td></tr>
     <tr><td>행동 안내</td><td>없음</td><td>도착 권장 시각·퇴장 시차·덜 붐비는 역과 출구·주차장(가까운 곳과 넓은 곳)</td></tr>
     <tr><td>갱신</td><td>—</td><td>기관 누리집 공연 일정을 자동으로 받아 60일 예보 생성·배포(GitHub Actions 매시간 예약, 예약 실행이 밀려 실제 갱신은 하루 몇 차례), 누리집 주차 표시값 기록</td></tr></table>
@@ -127,12 +127,12 @@ a{color:var(--pri)}
     <tr><td>출차 예보 피크</td><td>출구 정산 인력 증원, 「퇴장 시차」 안내</td></tr></table></div>
 </section>
 <section id="valid" class="hidden">
-  <div class="card"><h2>예보는 얼마나 맞았나 — 학습에 쓰지 않은 기간으로 잼</h2>
-    <p class="muted">‘공연 정보 없이’는 공연 변수를 빼고 따로 학습한 모델, ‘단순 규칙’은 과거 대형공연일의 같은 요일군·시각 평균입니다. 오차율은 대형공연일 그날 최대치 기준입니다.</p>
+  <div class="card"><h2>예보는 얼마나 맞았나 — 학습에 쓰지 않은 기간으로 측정</h2>
+    <p class="muted">‘공연 정보 없이’는 공연 변수를 제외하고 따로 학습한 모델, ‘단순 규칙’은 과거 대형공연일의 같은 요일군·시각 평균입니다. 오차율은 대형공연일 그날 최대치 기준입니다.</p>
     <div class="chart"><table id="metTbl"></table></div></div>
-  <div class="card"><h2>사례 ① 2026년 9호선 귀가 승차 — 2025년까지만 학습하고 2026년을 맞혀 보기</h2><div id="valL9Sel" class="seg" style="margin-bottom:8px"></div><div class="chart" id="chVL9"></div>
-    <div class="legend"><span><i style="background:#111"></i>실측</span><span><i style="background:var(--acc)"></i>공연 반영 예보</span><span><i style="background:#e9a23b"></i>붐빌 때(상위 20%)</span><span><i style="background:var(--base)"></i>공연 정보 없이 학습한 예보(점선)</span></div></div>
-  <div class="card"><h2>사례 ② 2024-07 공연일 차량 입차·출차 — 같은 공연의 날들을 통째로 빼고 학습한 뒤 맞혀 보기</h2><div id="valPkSel" class="seg" style="margin-bottom:8px"></div><div class="chart" id="chVPk"></div>
+  <div class="card"><h2>사례 ① 2026년 9호선 귀가 승차 — 2025년까지만 학습하고 2026년을 예측</h2><div id="valL9Sel" class="seg" style="margin-bottom:8px"></div><div class="chart" id="chVL9"></div>
+    <div class="legend"><span><i style="background:#111"></i>실측</span><span><i style="background:var(--acc)"></i>공연 반영 예보</span><span><i style="background:#e9a23b"></i>혼잡 시나리오(상위 20%)</span><span><i style="background:var(--base)"></i>공연 정보 없이 학습한 예보(점선)</span></div></div>
+  <div class="card"><h2>사례 ② 2024-07 공연일 차량 입차·출차 — 같은 공연의 공연일을 모두 제외하고 학습한 뒤 예측</h2><div id="valPkSel" class="seg" style="margin-bottom:8px"></div><div class="chart" id="chVPk"></div>
     <div class="legend"><span><i style="background:#111"></i>실측 입차</span><span><i style="background:var(--pri)"></i>입차 예보</span><span><i style="background:#555"></i>실측 출차(가는 선)</span><span><i style="background:var(--acc)"></i>출차 예보</span></div></div>
 </section>
 <section id="data" class="hidden">
@@ -164,7 +164,7 @@ const $=s=>document.querySelector(s);
 const fmt=n=>Math.round(n).toLocaleString('ko-KR');
 const hh=x=>{const h=Math.floor(x),m=Math.round((x-h)*60);return h+':'+String(m).padStart(2,'0')};
 const ratio=(v,b)=>b<200?null:v/b;
-const rtxt=(v,b)=>{const r=ratio(v,b);return r===null?'평소 적은 시간':`공연 정보 뺀 같은 날의 ${r.toFixed(1)}배`};
+const rtxt=(v,b)=>{const r=ratio(v,b);return r===null?'평소 적은 시간':`평시 기준의 ${r.toFixed(1)}배`};
 function line(series,{w=1000,h=260,ymax=null,marks=[]}={}){
   const pad={l:44,r:12,t:12,b:26};const all=series.flatMap(s=>s.v);const ym=ymax||Math.max(10,...all)*1.1;
   const X=i=>pad.l+i*(w-pad.l-pad.r)/(H.length-1),Y=v=>h-pad.b-(v/ym)*(h-pad.t-pad.b);
@@ -203,19 +203,19 @@ function renderDay(){
   const fs0=big.length?Math.max(0,Math.floor(Math.min(...big.map(e=>e.start)))-6-6):0;const pI=peak(x.pk_IN,fs0),pO=peak(x.pk_OUT,fi),l9=peak(x.l9_on,fi),l58=peak(x.l58_on,fi);
   const lbl=big.length?'귀가':'승차 최대';
   $('#kpis').innerHTML=[
-   `<div class="kpi"><div class="t">차량 입차 몰림</div><div class="v">${pI.h}시 ${fmt(pI.v)}대</div><div class="s">${rtxt(pI.v,pI.b)} · 붐빌 때 ${fmt(pI.q)}대</div></div>`,
-   `<div class="kpi"><div class="t">차량 출차 몰림</div><div class="v">${pO.h}시 ${fmt(pO.v)}대</div><div class="s">${rtxt(pO.v,pO.b)} · 붐빌 때 ${fmt(pO.q)}대</div></div>`,
-   `<div class="kpi"><div class="t">${lbl} 지하철(9호선 2개 역)</div><div class="v">${l9.h}시 ${fmt(l9.v)}명</div><div class="s">${rtxt(l9.v,l9.b)} · 붐빌 때 ${fmt(l9.q)}명</div></div>`,
-   `<div class="kpi"><div class="t">${lbl} 지하철(5호선·8호선)</div><div class="v">${l58.h}시 ${fmt(l58.v)}명</div><div class="s">${rtxt(l58.v,l58.b)} · 붐빌 때 ${fmt(l58.q)}명</div></div>`].concat(x.lp?[(()=>{const p=peak(x.lp);return `<div class="kpi"><div class="t">공원 일대 인파(오륜동)</div><div class="v">${p.h}시 ${fmt(p.v)}명</div><div class="s">평소보다 +${fmt(Math.max(0,p.v-p.b))}명 · 붐빌 때 ${fmt(p.q)}명</div></div>`})()]:[]).concat(x.spd?[(()=>{let i=0;x.spd.mean.forEach((v,k)=>{if(v<x.spd.mean[i])i=k});return `<div class="kpi"><div class="t">둘레 도로 가장 느린 시각</div><div class="v">${H[i]}시 ${x.spd.mean[i].toFixed(1)}km/h</div><div class="s">평소 ${x.spd.base[i].toFixed(1)} · 막힐 때 ${x.spd.q80[i].toFixed(1)}km/h</div></div>`})()]:[]).join('');
+   `<div class="kpi"><div class="t">차량 입차 집중</div><div class="v">${pI.h}시 ${fmt(pI.v)}대</div><div class="s">${rtxt(pI.v,pI.b)} · 혼잡 시나리오 ${fmt(pI.q)}대</div></div>`,
+   `<div class="kpi"><div class="t">차량 출차 집중</div><div class="v">${pO.h}시 ${fmt(pO.v)}대</div><div class="s">${rtxt(pO.v,pO.b)} · 혼잡 시나리오 ${fmt(pO.q)}대</div></div>`,
+   `<div class="kpi"><div class="t">${lbl} 지하철(9호선 2개 역)</div><div class="v">${l9.h}시 ${fmt(l9.v)}명</div><div class="s">${rtxt(l9.v,l9.b)} · 혼잡 시나리오 ${fmt(l9.q)}명</div></div>`,
+   `<div class="kpi"><div class="t">${lbl} 지하철(5호선·8호선)</div><div class="v">${l58.h}시 ${fmt(l58.v)}명</div><div class="s">${rtxt(l58.v,l58.b)} · 혼잡 시나리오 ${fmt(l58.q)}명</div></div>`].concat(x.lp?[(()=>{const p=peak(x.lp);return `<div class="kpi"><div class="t">공원 일대 인파(오륜동)</div><div class="v">${p.h}시 ${fmt(p.v)}명</div><div class="s">평소보다 +${fmt(Math.max(0,p.v-p.b))}명 · 혼잡 시나리오 ${fmt(p.q)}명</div></div>`})()]:[]).concat(x.spd?[(()=>{let i=0;x.spd.mean.forEach((v,k)=>{if(v<x.spd.mean[i])i=k});return `<div class="kpi"><div class="t">둘레 도로 가장 느린 시각</div><div class="v">${H[i]}시 ${x.spd.mean[i].toFixed(1)}km/h</div><div class="s">평소 ${x.spd.base[i].toFixed(1)} · 막힐 때 ${x.spd.q80[i].toFixed(1)}km/h</div></div>`})()]:[]).join('');
   let t=[];
   if(big.length){
     const st=Math.min(...big.map(e=>e.start));
     const ex=x.pk_IN.mean.map((v,i)=>v-x.pk_IN.base[i]);const thr=Math.max(60,0.5*Math.max(...ex));const first=ex.findIndex(v=>v>=thr);
-    t.push(first>=0?`<b>도착</b> — 차량은 <b>${H[first]}시</b>부터 몰립니다. 자가용이면 <b>${H[first]-1}시 이전</b> 입차, 그 뒤라면 지하철을 권합니다(공연 ${hh(st)} 시작).`:`<b>도착</b> — 차량 몰림이 크지 않은 날입니다(공연 ${hh(st)} 시작).`);
+    t.push(first>=0?`<b>도착</b> — 차량은 <b>${H[first]}시</b>부터 급증합니다. 자가용이면 <b>${H[first]-1}시 이전</b> 입차, 그 뒤라면 지하철을 권합니다(공연 ${hh(st)} 시작).`:`<b>도착</b> — 차량 집중이 크지 않은 날입니다(공연 ${hh(st)} 시작).`);
     const after=Math.min(17,l9.i+1);const drop=x.l9_on.mean[after];
-    t.push(`<b>퇴장</b> — 공연이 ${hh(le)}쯤 끝나면 <b>${pO.h}시</b>에 출차가, <b>${l9.h}시</b>에 지하철 귀가가 가장 몰립니다(9호선 ${fmt(l9.v)}명, 붐빌 때 ${fmt(l9.q)}명). 그다음 시간에는 ${fmt(drop)}명으로 줄어듭니다.`);
+    t.push(`<b>퇴장</b> — 공연이 ${hh(le)}쯤 끝나면 <b>${pO.h}시</b>에 출차가, <b>${l9.h}시</b>에 지하철 귀가가 가장 많습니다(9호선 ${fmt(l9.v)}명, 혼잡 시나리오 ${fmt(l9.q)}명). 그다음 시간에는 ${fmt(drop)}명으로 줄어듭니다.`);
     const r9=ratio(l9.v,l9.b)||0,r58=ratio(l58.v,l58.b)||0;
-    t.push(`<b>역 분산</b> — 귀가 몰림: 9호선 ${r9.toFixed(1)}배 · 5·8호선 ${r58.toFixed(1)}배. ${r9>=r58?'8호선 몽촌토성역(1번 출구)·5호선 쪽':'9호선 한성백제역(2번 출구, 남4문)'}을 고려하세요.`);
+    t.push(`<b>역 분산</b> — 귀가 집중: 9호선 ${r9.toFixed(1)}배 · 5·8호선 ${r58.toFixed(1)}배. ${r9>=r58?'8호선 몽촌토성역(1번 출구)·5호선 쪽':'9호선 한성백제역(2번 출구, 남4문)'}을 고려하세요.`);
   } else t.push(day.dtype>=2?'대형 공연이 없는 주말·휴일입니다. 낮에는 공원 방문 차량으로 주차장이 붐빌 수 있습니다.':'대형 공연이 없는 평일입니다. 아침·저녁 출퇴근 시간대 흐름이 중심입니다.');
   if(sc==='rain'){const c=DAY.series.clear.l9_on.mean,r=x.l9_on.mean;const a=Math.max(...c),b=Math.max(...r);t.push(`<b>비</b> — 저녁 비를 가정하면 9호선 승차 최대치가 ${fmt(a)}명 → ${fmt(b)}명으로 예보됩니다.`)}
   $('#tips').innerHTML=t.map(s=>'<div style="margin:4px 0">• '+s+'</div>').join('');
@@ -247,7 +247,7 @@ function sim(){
   $('#simK').innerHTML=`<div class="kpi"><div class="t">출차 피크</div><div class="v">${fmt(mx(x.pk_OUT.mean))} → ${fmt(mx(out))}대</div><div class="s">${f(red(x.pk_OUT.mean,out))}</div></div>`+
    `<div class="kpi"><div class="t">입차 피크(전환만)</div><div class="v">${fmt(mx(x.pk_IN.mean))} → ${fmt(mx(x.pk_IN.mean.map((v,i)=>v-eI[i]*q)))}대</div><div class="s">${f(red(x.pk_IN.mean,x.pk_IN.mean.map((v,i)=>v-eI[i]*q)))}</div></div>`+
    `<div class="kpi"><div class="t">9호선 귀가 피크</div><div class="v">${fmt(mx(x.l9_on.mean))} → ${fmt(mx(on9))}명</div><div class="s">${f(red(x.l9_on.mean,on9))} (전환 인원 더함)</div></div>`+
-   (p>0.6?'<div class="kpi"><div class="t">주의</div><div class="s">60%가 넘게 늦추면 다음 시간에 새 몰림이 생길 수 있습니다.</div></div>':'');
+   (p>0.6?'<div class="kpi"><div class="t">주의</div><div class="s">60%가 넘게 늦추면 다음 시간대에 새로운 혼잡이 생길 수 있습니다.</div></div>':'');
   $('#chSim').innerHTML=line([{v:x.pk_OUT.mean,c:'#e4572e'},{v:out,c:'#2a9d8f'},{v:x.l9_on.mean,c:'#1f4e9e',wd:1.6},{v:on9,c:'#7b5cd6',wd:1.6}],{h:230});
 }
 async function weatherHint(){
@@ -262,7 +262,7 @@ async function weatherHint(){
 function renderOps(){
   const rows=SUM.days.filter(d=>d.peaks&&(d.events.some(e=>BIG.includes(e.cls))||d.dtype>=2));
   $('#opsNote').textContent=`${SUM.days.length}일 중 대형공연일·주말·휴일 ${rows.length}일. 만차 위험은 2025년 「주차장 혼잡도 정보」 만차 고지 기록의 같은 조건 비율로 정합니다(주말·휴일 대형공연일 59%, 평일 대형공연일 3%). 배수는 공연 정보를 뺀 같은 날 대비이며, 평소 값이 작은 시간은 배수를 표시하지 않습니다.`;
-  let h='<tr><th>날짜</th><th>공연</th><th>만차 위험</th><th>입차 피크</th><th>출차 피크</th><th>9호선 귀가 피크(붐빌 때)</th><th>5·8호선 귀가 피크</th><th>공원 일대 인파 최대</th><th>둘레 도로 최저 속도</th></tr>';
+  let h='<tr><th>날짜</th><th>공연</th><th>만차 위험</th><th>입차 피크</th><th>출차 피크</th><th>9호선 귀가 피크(혼잡 시나리오)</th><th>5·8호선 귀가 피크</th><th>공원 일대 인파 최대</th><th>둘레 도로 최저 속도</th></tr>';
   rows.forEach(day=>{const d=new Date(day.date+'T00:00:00');const [rt,rc]=risk(day);const P=day.peaks;const r=(o)=>{const x=ratio(o.v,o.base);return x===null?'':` · ${x.toFixed(1)}배`};
     const evs=[...new Map(day.events.filter(e=>BIG.includes(e.cls)).map(e=>[e.cls+e.start,e])).values()];
     h+=`<tr><td>${d.getMonth()+1}/${d.getDate()}(${WD[d.getDay()]})</td><td>${evs.map(e=>`${CLS[e.cls]} ${hh(e.start)}`).join('<br>')||'<span class="muted">대형 공연 없음</span>'}</td><td><span class="badge ${rc}">${rt}</span></td><td>${P.pk_IN.h}시${r(P.pk_IN)}</td><td>${P.pk_OUT.h}시${r(P.pk_OUT)}</td><td>${P.l9_on.h}시 ${fmt(P.l9_on.v)}명(${fmt(P.l9_on.q)})${r(P.l9_on)}</td><td>${P.l58_on.h}시 ${fmt(P.l58_on.v)}명${r(P.l58_on)}</td><td>${P.lp?`${P.lp.h}시 ${fmt(P.lp.v)}명 (+${fmt(Math.max(0,P.lp.v-P.lp.base))})`:'-'}</td><td>${P.spd?`${P.spd.h}시 ${P.spd.v.toFixed(1)}km/h (평소 ${P.spd.base.toFixed(1)})`:'-'}</td></tr>`});
@@ -288,17 +288,17 @@ async function renderLive(){
 }
 function renderValid(){
   const m=V.metrics;const p=x=>(x*100).toFixed(0)+'%';
-  let h='<tr><th>대상</th><th>검증 방법</th><th>대형공연일</th><th>최대치 오차율: 공연 정보 없이 → 단순 규칙 → <b>올팍 타이밍</b></th><th>가장 몰리는 시각 적중(±1시간)</th></tr>';
+  let h='<tr><th>대상</th><th>검증 방법</th><th>대형공연일</th><th>최대치 오차율: 공연 정보 없이 → 단순 규칙 → <b>올팍 타이밍</b></th><th>최대 혼잡 시각 적중(±1시간)</th></tr>';
   const a=m['l9_순승차'],b=m['l9_순하차'],c=m.park_series.IN,d=m.park_series.OUT,e=m['l58_승차'];
   h+=`<tr><td>9호선 2개 역 귀가(승차)</td><td>2023~2025 학습 → 2026.1~7 예측</td><td>83일</td><td>${p(a.mape_peak0)} → ${p(a.mape_peak_rule)} → <b>${p(a.mape_peak)}</b></td><td><b>${p(a.peak_hour_exact)}</b> (${p(a.peak_hour_pm1)})</td></tr>`;
   h+=`<tr><td>9호선 2개 역 도착(하차)</td><td>같음</td><td>83일</td><td>${p(b.mape_peak0)} → ${p(b.mape_peak_rule)} → <b>${p(b.mape_peak)}</b></td><td>${p(b.peak_hour_exact)} (${p(b.peak_hour_pm1)})</td></tr>`;
   h+=`<tr><td>5·8호선 귀가(승차)</td><td>2025.1~9 학습 → 10~12월 예측</td><td>${e.n_days}일</td><td>${p(e.mape_peak0)} → — → <b>${p(e.mape_peak)}</b></td><td>${p(e.peak_hour_exact)} (${p(e.peak_hour_pm1)})</td></tr>`;
-  h+=`<tr><td>주차장 입차</td><td>2024-07, 같은 공연의 날들을 통째로 빼고 학습(4묶음)</td><td>9일</td><td>${p(c.mape_peak0)} → ${p(c.mape_peak_rule)} → <b>${p(c.mape_peak)}</b></td><td>—</td></tr>`;
+  h+=`<tr><td>주차장 입차</td><td>2024-07, 같은 공연의 공연일을 모두 제외하고 학습(4묶음)</td><td>9일</td><td>${p(c.mape_peak0)} → ${p(c.mape_peak_rule)} → <b>${p(c.mape_peak)}</b></td><td>—</td></tr>`;
   h+=`<tr><td>주차장 출차</td><td>같음</td><td>9일</td><td>${p(d.mape_peak0)} → ${p(d.mape_peak_rule)} → <b>${p(d.mape_peak)}</b></td><td>—</td></tr>`;
   const lpm=m.lp_oryun,spm=m.spd_ring;
   if(lpm)h+=`<tr><td>공원 일대 인파(오륜동 생활인구)</td><td>2023~2024 학습 → 2025.1~2026.7 예측</td><td>${lpm.n_days}일</td><td>${p(lpm.mape_peak0)} → — → <b>${p(lpm.mape_peak)}</b></td><td>${p(lpm.peak_hour_hit)} (${p(lpm.peak_hour_pm1)})</td></tr>`;
   if(spm)h+=`<tr><td>둘레 도로 최저 속도(TOPIS 32개 구간)</td><td>2023~2024 학습 → 2025.1~2026.10 예측</td><td>${spm.n_days}일</td><td>${p(spm.min_mape0)} → — → <b>${p(spm.min_mape)}</b></td><td>— (${p(spm.minhour_pm1)})</td></tr>`;
-  $('#metTbl').innerHTML=h+`<tr><td colspan="5" class="muted">주차장 ‘점유 대수’는 1개월 자료로 검증 기준을 넘지 못해 화면에서 뺐습니다(공연 묶음 빼기 오차율 57%). 예보는 대형공연일 피크를 낮게 잡는 경향이 있어(9호선 귀가 83일 중 76%) ‘붐빌 때(상위 20%)’ 값을 함께 보입니다 — 이 값의 최대치 오차율은 ${p(a.q_mape)}, 실측이 이 값 이하였던 날은 ${p(a.p80_cover)}로 아직 낮게 잡습니다.</td></tr>`;
+  $('#metTbl').innerHTML=h+`<tr><td colspan="5" class="muted">주차장 ‘점유 대수’는 1개월 자료로 검증 기준을 넘지 못해 화면에서 뺐습니다(공연 묶음 빼기 오차율 57%). 예보는 대형공연일 피크를 낮게 잡는 경향이 있어(9호선 귀가 83일 중 76%) ‘혼잡 시나리오(상위 20%)’ 값을 함께 보입니다 — 이 값의 최대치 오차율은 ${p(a.q_mape)}, 실측이 이 값 이하였던 날은 ${p(a.p80_cover)}로 아직 낮게 잡습니다.</td></tr>`;
   const l9k=Object.keys(V).filter(k=>k.startsWith('l9_')&&V[k].events);const pkk=Object.keys(V).filter(k=>k.startsWith('park_'));
   $('#valL9Sel').innerHTML=l9k.map((k,i)=>`<button data-k="${k}" class="${i?'':'on'}">${k.slice(3)}</button>`).join('');
   $('#valPkSel').innerHTML=pkk.map((k,i)=>`<button data-k="${k}" class="${i?'':'on'}">${k.slice(5)}</button>`).join('');
